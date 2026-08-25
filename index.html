@@ -20,7 +20,6 @@
     <button class="nav-btn" data-nav="stats" data-i18n="nav_stats">数据</button>
   </nav>
   <div class="topbar-actions">
-    <button id="musicBtn" class="icon-btn" title="音乐" aria-label="Music">🎵</button>
     <button id="voiceBtn" class="icon-btn" title="语音" aria-label="Voice">🗣️</button>
     <button id="themeBtn" class="icon-btn" title="主题" aria-label="Theme">🌙</button>
     <button id="langBtn" class="pill-btn" title="语言">中 / EN</button>
@@ -140,9 +139,11 @@
   </section>
 </main>
 
+<div id="focusPill" class="focus-pill" style="display:none"></div>
+
 <footer class="footer"></footer>
 
 <script>window.FOCUSPLAY_CONFIG={syncUrl:"/api/sync"};</script>
-<script type="module" src="js/app.js?v=5"></script>
+<script type="module" src="js/app.js?v=6"></script>
 </body>
 </html>

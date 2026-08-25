@@ -18,12 +18,14 @@ export const voice={
   toggle(){ enabled=!enabled; store.setPref("voice", enabled); return enabled; },
   set(on){ enabled=on; store.setPref("voice", on); },
   cancel(){ try{ speechSynthesis.cancel(); }catch(e){} },
-  say(text){
+  say(text, opts={}){
     if(!enabled || !("speechSynthesis" in window) || !text) return;
     try{
       speechSynthesis.cancel();
       const u=new SpeechSynthesisUtterance(text);
-      u.lang=lang==="zh"?"zh-CN":"en-US"; u.rate=0.92; u.pitch=1;
+      u.lang=lang==="zh"?"zh-CN":"en-US";
+      u.rate=opts.rate ?? 0.92;
+      u.pitch=opts.pitch ?? 1;
       const v=pickVoice(); if(v) u.voice=v;
       speechSynthesis.speak(u);
     }catch(e){}

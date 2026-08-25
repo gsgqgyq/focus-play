@@ -2,6 +2,7 @@
 import { t } from "../i18n.js";
 import { sfx } from "../audio.js";
 import { voice } from "../voice.js";
+import { store } from "../state.js";
 
 const COLS=3, STIM_MS=750, WINDOW_MS=3000;
 
@@ -20,6 +21,7 @@ export const nback = {
   start(host, {level, end}){
     const N=level, trials=18+N*4;
     const pos=buildSeq(N, trials);
+    let cueOn=store.getPref("nbackCue", false);
     const $=c=>host.querySelector(c);
     host.innerHTML=`
       <div class="hud" style="margin-bottom:18px">
@@ -29,6 +31,7 @@ export const nback = {
         <span data-c="fa">误<b>0</b></span>
         <span data-c="acc">准<b>—</b></span>
         <span data-c="prog" style="min-width:90px;justify-content:center">1/${trials}</span>
+        <span id="cueBtn" title="提示音" style="cursor:pointer;user-select:none">${cueOn?"🔊":"🔇"}</span>
       </div>
       <div class="nb-grid" style="grid-template-columns:repeat(${COLS},1fr);width:min(74vw,300px)">
         ${Array(COLS*COLS).fill(`<div class="nb-cell"></div>`).join("")}
@@ -64,6 +67,7 @@ export const nback = {
       responded=false;
       $('[data-c="turn"]').textContent = t("nb_turn",{n:idx+1});
       $('[data-c="prog"]').textContent = `${idx+1}/${trials}`;
+      if(cueOn) sfx.go();
       cells[pos[idx]].classList.add("lit");
       later(()=>cells[pos[idx]].classList.remove("lit"), STIM_MS);
       later(()=>{
@@ -80,6 +84,8 @@ export const nback = {
       matchBtn.style.transform="scale(.96)"; later(()=>matchBtn.style.transform="",110);
     });
     const kb=e=>{ if(e.code==="Space"||e.code==="KeyJ"){ e.preventDefault(); matchBtn.click(); } };
+    const cueBtn=host.querySelector("#cueBtn");
+    cueBtn.addEventListener("click", ()=>{ sfx.click(); cueOn=!cueOn; store.setPref("nbackCue", cueOn); cueBtn.textContent=cueOn?"🔊":"🔇"; });
     window.addEventListener("keydown", kb);
 
     later(()=>present(0), 800);

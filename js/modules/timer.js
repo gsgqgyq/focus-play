@@ -8,6 +8,18 @@ const PRESETS=[5,10,15,25,40];
 let secs=25*60, total=25*60, running=false, paused=false, iv=null;
 
 const $=id=>document.getElementById(id);
+const PAGE_TITLE="专注乐园 · FocusPlay";
+function mm() { const m=Math.floor(secs/60), s=secs%60; return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`; }
+function paintGlobal(){
+  const pill=$("focusPill");
+  if(running && !paused){
+    pill.style.display="flex"; pill.innerHTML=`⏱ <b>${mm()}</b> ${t("focus_min")}`;
+    document.title=`${mm()} · ${PAGE_TITLE}`;
+  } else {
+    pill.style.display="none";
+    document.title=PAGE_TITLE;
+  }
+}
 function renderPresets(){
   $("timerPresets").innerHTML=PRESETS.map(m=>`<button class="preset-btn ${m===25?'active':''}" data-m="${m}">${m} ${t("min")}</button>`).join("");
   $("timerPresets").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
@@ -29,18 +41,18 @@ function start(){
   $("timerPauseBtn").style.display="inline-block";
   $("timerResetBtn").style.display="inline-block";
   $("timerNote").textContent=t("timer_running");
-  sfx.tick(); voice.say(t("timer_start"));
+  sfx.tick(); voice.say(t("timer_start")); paintGlobal();
   iv=setInterval(()=>{
-    secs--; paint();
+    secs--; paint(); paintGlobal();
     if(secs<=0){ done(); }
   },1000);
 }
-function pause(){ if(!running||paused)return; paused=true; clearInterval(iv); $("timerPauseBtn").textContent=t("resume"); }
-function resume(){ if(!running||!paused)return; paused=false; $("timerPauseBtn").textContent=t("timer_pause");
-  iv=setInterval(()=>{ secs--; paint(); if(secs<=0){ done(); } },1000);
+function pause(){ if(!running||paused)return; paused=true; clearInterval(iv); $("timerPauseBtn").textContent=t("resume"); paintGlobal(); }
+function resume(){ if(!running||!paused)return; paused=false; $("timerPauseBtn").textContent=t("timer_pause"); paintGlobal();
+  iv=setInterval(()=>{ secs--; paint(); paintGlobal(); if(secs<=0){ done(); } },1000);
 }
 function done(){
-  clearInterval(iv); running=false;
+  clearInterval(iv); running=false; paintGlobal();
   const doneMs = total*1000;
   store.recordFocus(doneMs);
   $("timerNote").textContent=t("timer_done",{m:Math.round(total/60)});
@@ -50,7 +62,7 @@ function done(){
   $("timerResetBtn").style.display="none";
   $("timerBar").style.width="100%";
 }
-function reset(){ clearInterval(iv); running=false; setTime(total); $("timerStartBtn").style.display="inline-block"; $("timerPauseBtn").style.display="none"; $("timerResetBtn").style.display="none"; $("timerNote").textContent=""; }
+function reset(){ clearInterval(iv); running=false; setTime(total); paintGlobal(); $("timerStartBtn").style.display="inline-block"; $("timerPauseBtn").style.display="none"; $("timerResetBtn").style.display="none"; $("timerNote").textContent=""; }
 
 let pauseBtnMode=false;
 export function initTimer(){

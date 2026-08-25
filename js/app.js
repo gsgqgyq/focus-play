@@ -1,7 +1,7 @@
 /* FocusPlay — 主程序：导航 / 首页 / 游戏列表与关卡 / 结果 / 数据 / 同步 / 主题 */
-import { applyI18n, t, lang } from "./i18n.js";
+import { applyI18n, t, lang, setLang } from "./i18n.js";
 import { store, setSyncCode } from "./state.js";
-import { sfx, music } from "./audio.js";
+import { sfx } from "./audio.js";
 import { voice } from "./voice.js";
 import { nback } from "./games/nback.js";
 import { schulte } from "./games/schulte.js";
@@ -219,11 +219,9 @@ $("themeBtn").addEventListener("click",()=>{
   store.setPref("theme", next); applyTheme();
 });
 $("langBtn").addEventListener("click",()=>{ setLang(lang==="zh"?"en":"zh"); sfx.click(); });
-$("musicBtn").addEventListener("click",()=>{ const on=music.toggle(); sfx.click(); $("musicBtn").classList.toggle("on",on); });
 $("voiceBtn").addEventListener("click",()=>{ const on=voice.toggle(); $("voiceBtn").classList.toggle("on",on); if(on) voice.say(t("voice")); });
 
 function paintPrefs(){
-  $("musicBtn").classList.toggle("on", music.isOn());
   $("voiceBtn").classList.toggle("on", voice.isOn());
   applyTheme();
 }

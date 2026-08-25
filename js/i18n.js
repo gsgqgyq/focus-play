@@ -37,6 +37,7 @@ const I18N = {
     breathe_start:"开始", breathe_stop:"结束",
     b_in:"吸", b_hold:"屏", b_out:"呼", b_relax:"放松",
     b_calm:"平静", b_deep:"深度 4-7-8", b_sleepy:"助眠", b_done:"完成 {n} 次呼吸循环",
+    b_vin:"吸——" , b_vhold:"轻轻地屏住", b_vout:"缓缓地呼出", b_vstart:"准备好了吗，慢慢来",
     // stats
     st_total:"累计专注", st_min:"分钟", st_today:"今日", st_streak:"连续天数", st_sessionsN:"训练次数",
     st_breakdown:"分项成绩",
@@ -85,6 +86,7 @@ const I18N = {
     breathe_start:"Start", breathe_stop:"Stop",
     b_in:"Breathe in", b_hold:"Hold", b_out:"Breathe out", b_relax:"Relax",
     b_calm:"Calm", b_deep:"Deep 4-7-8", b_sleepy:"Sleep", b_done:"{n} breath cycles done",
+    b_vin:"Breathe in……", b_vhold:"Hold gently…", b_vout:"Breathe out slowly……", b_vstart:"Get ready… take it slow",
     st_total:"Total focus", st_min:"minutes", st_today:"Today", st_streak:"Day streak", st_sessionsN:"sessions",
     st_breakdown:"Score breakdown",
     sync_title:"Cross-device sync", sync_desc:"Enter a sync code so phone and computer share one training profile (same sync code on all devices).",

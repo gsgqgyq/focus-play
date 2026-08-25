@@ -106,7 +106,8 @@ main{max-width:1000px;margin:0 auto}
 .nb-grid{display:grid;gap:10px;}
 .nb-cell{aspect-ratio:1;border-radius:16px;background:var(--bg2);border:2px solid var(--card-border);
   display:grid;place-items:center;font-size:clamp(1.4rem,6vw,2.2rem);font-weight:800;transition:var(--trans)}
-.nb-cell.lit{border-color:var(--accent);background:var(--accent-soft);transform:scale(.96)}
+.nb-cell.lit{border-color:var(--accent2);background:linear-gradient(135deg,var(--accent),var(--accent2));
+  transform:scale(.92);box-shadow:0 0 28px var(--accent);z-index:1}
 .nb-cell .nb-center{font-size:clamp(1.2rem,4.5vw,1.8rem);color:var(--accent)}
 
 /* events */
@@ -206,6 +207,14 @@ main{max-width:1000px;margin:0 auto}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--text);color:var(--bg);
   padding:12px 22px;border-radius:999px;font-weight:600;opacity:0;transition:var(--trans);z-index:50;font-size:.9rem}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* global focus countdown pill (fixed, visible on every view) */
+.focus-pill{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:60;
+  display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;font-weight:800;font-size:.9rem;padding:8px 16px;border-radius:999px;
+  box-shadow:0 8px 24px rgba(108,92,231,.35);animation:fadeIn .25s var(--trans)}
+.focus-pill b{font-variant-numeric:tabular-nums;font-size:1rem}
+@keyframes fadeIn{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translate(-50%,0)}}
 
 @media (max-width:560px){
   .topbar{flex-wrap:wrap;gap:8px}

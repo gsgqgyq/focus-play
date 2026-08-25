@@ -1,7 +1,7 @@
 /* 呼吸/正念 — 3-4-7 / 4-4-4 / 4-7-8 引导，语音与动画跟随。助眠友好。 */
 import { t } from "../i18n.js";
 import { store } from "../state.js";
-import { sfx, music } from "../audio.js";
+import { sfx } from "../audio.js";
 import { voice } from "../voice.js";
 
 const MODES=[
@@ -31,15 +31,15 @@ function countdown(n){
   clearInterval(countIv);
   countIv=setInterval(()=>{ if(!running) return; n--; if(n<=0){n=0;} $("orbText").textContent=Math.max(0,n); },1000);
 }
-function phase(label, sec, scale, done){
-  $("breatheStep").textContent=label; voice.say(label); countdown(sec);
+function phase(label, sec, scale, done, vtext){
+  $("breatheStep").textContent=label; voice.say(vtext||label, {rate:0.70, pitch:1.4}); countdown(sec);
   setOrb(scale, sec);
   phaseTimer=setTimeout(done, sec*1000);
 }
 function cycle(){
   if(!running) return;
   cycles++;
-  phase(t("b_in"), mode.in, 1, ()=>phase(t("b_hold"), mode.hold, 1, ()=>phase(t("b_out"), mode.out, 0.55, ()=>cycle())));
+  phase(t("b_in"), mode.in, 1, ()=>phase(t("b_hold"), mode.hold, 1, ()=>phase(t("b_out"), mode.out, 0.55, ()=>cycle()), t("b_vhold")) , t("b_vin"));
 }
 function start(){
   if(running) return;
@@ -47,9 +47,8 @@ function start(){
   $("breatheStartBtn").style.display="none";
   $("breatheStopBtn").style.display="inline-block";
   $("breatheNote").textContent="";
-  sfx.correct(); voice.say(t(mode.ki));
-  // begin with a small exhale first isn't needed; go straight to inhale
-  phase(t("b_in"), mode.in, 1, ()=>phase(t("b_hold"), mode.hold, 1, ()=>phase(t("b_out"), mode.out, 0.55, ()=>cycle())));
+  sfx.correct(); voice.say(t("b_vstart"), {rate:0.7, pitch:1.4});
+  phase(t("b_in"), mode.in, 1, ()=>phase(t("b_hold"), mode.hold, 1, ()=>phase(t("b_out"), mode.out, 0.55, ()=>cycle()), t("b_vhold")), t("b_vin"));
 }
 function stop(){
   if(!running) return;
