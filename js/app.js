@@ -47,8 +47,7 @@ function renderHome(){
 const today=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; };
 
 function renderSyncCard(){
-  const cfg=window.FOCUSPLAY_CONFIG||{};
-  const configured=!!(cfg.url&&cfg.anonKey);
+  const configured=!!(window.FOCUSPLAY_CONFIG||{}).syncUrl;
   const box=$("syncCard");
   box.innerHTML=`<div class="sync-box">
     <h3>🔄 ${t("sync_title")}</h3><p>${t("sync_desc")}</p>

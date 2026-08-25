@@ -1,6 +1,6 @@
-/* state — 本地存储(LocalStorage) + Supabase 跨端同步。同步失败自动降级为纯本地。 */
+/* state — 本地存储(LocalStorage) + Cloudflare Worker/D1 跨端同步。同步失败自动降级为纯本地。 */
 
-const CFG = () => window.FOCUSPLAY_CONFIG || {url:"", anonKey:""};
+const CFG = () => window.FOCUSPLAY_CONFIG || {};
 const LS = {
   records: "ff.records",   // per-game summaries
   focus:   "ff.focus",     // aggregate focus time
@@ -8,8 +8,6 @@ const LS = {
 };
 const todayKey = () => { const d=new Date(); const p=n=>String(n).padStart(2,"0");
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; };
-const hash = async s => { const b=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); };
 
 const store = {
   records: JSON.parse(localStorage.getItem(LS.records)||"{}"),
@@ -39,36 +37,30 @@ const store = {
   },
   /* streak: consecutive days up to today/yesterday with activity */
   streak(){
-    const days=Object.keys(this.focus.perDay).sort().reverse();
-    if(!days.length) return 0;
-    const has=(k)=>this.focus.perDay[k]>0;
+    const has=(k)=>(this.focus.perDay[k]||0)>0;
     let streak=0, cur=new Date();
-    // include today if active
     if(!has(todayKey())) cur.setDate(cur.getDate()-1);
-    for(;;){ const k=todayKeyFrom(cur); if(!has(k)) break; streak++; cur.setDate(cur.getDate()-1); }
+    for(let guard=0; guard<3650; guard++){
+      const k=todayKeyFrom(cur); if(!has(k)) break;
+      streak++; cur.setDate(cur.getDate()-1);
+    }
     return streak;
   },
   src(){ return {records:this.records, focus:this.focus}; },
 
-  /* ---- Supabase sync ---- */
-  _cfg(){ return CFG(); },
-  async _hash(){ const c=this.getPref("syncCode","").trim(); return c ? await hash(c) : null; },
+  /* ---- D1 sync ---- */
+  _code(){ return (this.getPref("syncCode","")||"").trim(); },
   async pull(){
-    const cfg=this._cfg(); if(!cfg.url||!cfg.anonKey) return null;
-    const id=await this._hash(); if(!id) return null;
-    const res=await fetch(`${cfg.url}/rest/v1/ff_data?id=eq.${id}&select=data`,{
-      headers:{apikey:cfg.anonKey, Authorization:`Bearer ${cfg.anonKey}`, "X-FF-SECRET":id}});
+    const cfg=CFG(); if(!cfg.syncUrl || !this._code()) return null;
+    const res=await fetch(cfg.syncUrl,{headers:{"X-Sync-Code":this._code()}});
     if(!res.ok) throw new Error("pull "+res.status);
-    const rows=await res.json();
-    return rows&&rows[0]?rows[0].data:null;
+    return res.json();   // null when nothing stored yet
   },
   async push(data){
-    const cfg=this._cfg(); if(!cfg.url||!cfg.anonKey) return;
-    const id=await this._hash(); if(!id) return;
-    const res=await fetch(`${cfg.url}/rest/v1/ff_data`,{
-      method:"POST", headers:{apikey:cfg.anonKey, Authorization:`Bearer ${cfg.anonKey}`,
-        "X-FF-SECRET":id, "Content-Type":"application/json", Prefer:"resolution=merge-duplicates,return=minimal"},
-      body: JSON.stringify({id, secret:id, data, updated_at:new Date().toISOString()})});
+    const cfg=CFG(); if(!cfg.syncUrl || !this._code()) return;
+    const res=await fetch(cfg.syncUrl,{
+      method:"PUT", headers:{"X-Sync-Code":this._code(),"Content-Type":"application/json"},
+      body: JSON.stringify(data)});
     if(!res.ok) throw new Error("push "+res.status);
   },
   _pushT:null,
@@ -80,6 +72,7 @@ const store = {
   /* merge remote data into local, then push back */
   async sync(){
     try{
+      if(!CFG().syncUrl) return false;
       const remote=await this.pull();
       if(remote) mergeInto(this, remote);
       this._persist(); await this.push(this.src());
@@ -106,13 +99,13 @@ function mergeInto(store, remote){
   const pd=store.focus.perDay, pdb=fb.perDay||{};
   for(const d in pdb) pd[d]=Math.max(f(pd[d]), f(pdb[d]));
 }
-function toDateKey(d){ const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
-function todayKeyFrom(d){ return toDateKey(d); }
+function todayKeyFrom(d){ const p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
 
 async function setSyncCode(code){
   store.setPref("syncCode", code);
   const ok = code ? await store.sync() : null;
-  return {ok, configured: !!(CFG().url&&CFG().anonKey)};
+  return {ok, configured: !!CFG().syncUrl};
 }
 
 export { store, setSyncCode };
