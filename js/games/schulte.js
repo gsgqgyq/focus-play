@@ -6,7 +6,7 @@ import { voice } from "../voice.js";
 const SIZES=[3,3,4,4,4,5,5,5,6];
 
 export const schulte = {
-  id:"schulte", min:1, max:9, nameKey:"s_t", descKey:"s_d",
+  id:"schulte", min:1, max:9, nameKey:"s_t", descKey:"s_d", howKey:"how_schulte",
   start(host,{level,end}){
     const size=SIZES[Math.min(level,9)-1], total=size*size;
     const timeTarget=total*1.6;
@@ -16,7 +16,7 @@ export const schulte = {
       <div class="hud" style="margin-bottom:14px">
         <span>${t("s_cur")}：<b data-c="cur">1</b></span>
         <span>⏱<b data-c="time">0.0s</b></span>
-        <span><i>错</i><b data-c="err">0</b></span>
+        <span data-c="err">错<b>0</b></span>
       </div>
       <div class="schulte-table" style="grid-template-columns:repeat(${size},1fr)">
         ${nums.map((n,ix)=>`<button class="st-cell" data-i="${ix}" data-n="${n}">${n}</button>`).join("")}

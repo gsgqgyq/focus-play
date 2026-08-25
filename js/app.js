@@ -121,12 +121,14 @@ function openPlay(game, level){
   curLevel=Math.min(level, game.max);
   paintLevelStrip(); startLevel(game, curLevel);
 }
+function levelLabel(game,l){ return game.id==="nback" ? "N"+l : l; }
 function paintLevelStrip(){
   if(!curGame) return; const g=curGame, r=store.records[g.id], passed=new Set(); (r?r.history:[]).forEach(h=>{if(h.pass)passed.add(h.lvl);});
-  $("playLevelBadge").textContent=t("level")+" "+curLevel;
+  const badge = g.id==="nback" ? `N=${curLevel}` : `${t("level")} ${curLevel}`;
+  $("playLevelBadge").textContent=badge;
   $("playLevels").innerHTML=Array.from({length:g.max},(_,i)=>i+1).map(l=>{
     const cls = l===curLevel?"cur": passed.has(l)?"done": l<unlockedLvl(g,r)+1?"unlocked":"locked";
-    return `<button class="lvl-dot ${cls}" data-l="${l}">${l}</button>`;
+    return `<button class="lvl-dot ${cls}" data-l="${l}" title="${g.id==='nback'?'N='+l:t('level')+' '+l}">${levelLabel(g,l)}</button>`;
   }).join("");
   $("playLevels").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
     const l=+b.dataset.l; if(!l) return;
@@ -136,10 +138,21 @@ function paintLevelStrip(){
 }
 function startLevel(game, level){
   if(curAbort){ try{curAbort();}catch(e){} curAbort=null; }
+  curLevel=level; curGame=game;
   const host=$("playHost"); host.innerHTML="";
   $("playControls").innerHTML="";
-  curLevel=level; curGame=game;
-  curAbort=game.start(host, {level, end: entry=>onEnd(game,entry,level)});
+  // intro: 玩法说明 + 开始按钮
+  host.innerHTML=`<div class="card" style="max-width:440px;width:100%;text-align:left">
+    <h3 style="font-size:1.05rem">${ICON[game.id]} ${t(game.nameKey)}
+      <span class="lvl-badge" style="margin-left:8px">${game.id==="nback"?`N=${level}`:`L${level}`}</span></h3>
+    <p style="color:var(--muted);font-size:.92rem;margin:12px 0 16px;line-height:1.7">${t(game.howKey)}</p>
+    <button class="btn primary big" id="introGo">▶ ${t("start")}</button>
+  </div>`;
+  document.getElementById("introGo").addEventListener("click",()=>{
+    sfx.click();
+    host.innerHTML="";
+    curAbort=game.start(host, {level, end: entry=>onEnd(game,entry,level)});
+  });
 }
 function onEnd(game, entry, level){
   store.record(game.id, {level, score:entry.score, ms:entry.ms, pass:entry.pass});

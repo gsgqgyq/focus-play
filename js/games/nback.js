@@ -16,23 +16,24 @@ function buildSeq(N, trials){
 }
 
 export const nback = {
-  id:"nback", min:1, max:6, nameKey:"n_t", descKey:"n_d",
+  id:"nback", min:1, max:6, nameKey:"n_t", descKey:"n_d", howKey:"how_nback",
   start(host, {level, end}){
     const N=level, trials=18+N*4;
     const pos=buildSeq(N, trials);
     const $=c=>host.querySelector(c);
     host.innerHTML=`
-      <div class="hud" style="margin-bottom:14px">
+      <div class="hud" style="margin-bottom:18px">
         <span>N=<b>${N}</b></span>
-        <span class="lives" data-c="hits"><i>🎯</i><b>0</b></span>
-        <span><i>漏</i><b data-c="miss">0</b></span>
-        <span><i>误</i><b data-c="fa">0</b></span>
-        <span><i>准</i><b data-c="acc">—</b></span>
+        <span data-c="hits">🎯<b>0</b></span>
+        <span data-c="miss">漏<b>0</b></span>
+        <span data-c="fa">误<b>0</b></span>
+        <span data-c="acc">准<b>—</b></span>
+        <span data-c="prog" style="min-width:90px;justify-content:center">1/${trials}</span>
       </div>
       <div class="nb-grid" style="grid-template-columns:repeat(${COLS},1fr);width:min(74vw,300px)">
         ${Array(COLS*COLS).fill(`<div class="nb-cell"></div>`).join("")}
-        <div class="nb-center" data-c="turn" style="grid-column:1/-1;text-align:center;padding:6px">${t("nb_turn",{n:1})}</div>
       </div>
+      <div class="nb-center" data-c="turn" style="text-align:center;color:var(--muted);padding:10px 0 4px">${t("nb_turn",{n:1})}</div>
       <div class="play-controls">
         <button class="btn primary big match-btn" style="width:min(90vw,260px)">🟰 ${t("nb_tap")}</button>
       </div>`;
@@ -47,9 +48,9 @@ export const nback = {
     const accuracy=()=>{ const r=hits+fa; return r? Math.round(100*hits/r) : (fa?0:100); };
     const setHud=()=>{
       $('[data-c="hits"] b').textContent=hits;
-      $('[data-c="miss"]').textContent=miss;
-      $('[data-c="fa"]').textContent=fa;
-      $('[data-c="acc"]').textContent=accuracy()+"%";
+      $('[data-c="miss"] b').textContent=miss;
+      $('[data-c="fa"] b').textContent=fa;
+      $('[data-c="acc"] b').textContent=accuracy()+"%";
     };
 
     function finish(){
@@ -62,6 +63,7 @@ export const nback = {
       if(!running) return; if(idx>=trials) return finish();
       responded=false;
       $('[data-c="turn"]').textContent = t("nb_turn",{n:idx+1});
+      $('[data-c="prog"]').textContent = `${idx+1}/${trials}`;
       cells[pos[idx]].classList.add("lit");
       later(()=>cells[pos[idx]].classList.remove("lit"), STIM_MS);
       later(()=>{

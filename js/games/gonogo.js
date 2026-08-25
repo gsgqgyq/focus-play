@@ -4,7 +4,7 @@ import { sfx } from "../audio.js";
 import { voice } from "../voice.js";
 
 export const gonogo = {
-  id:"gonogo", min:1, max:8, nameKey:"g_t", descKey:"g_d",
+  id:"gonogo", min:1, max:8, nameKey:"g_t", descKey:"g_d", howKey:"how_gonogo",
   start(host,{level,end}){
     const trials=16+level*2;
     const holdMs=Math.max(820, 1800-level*110);

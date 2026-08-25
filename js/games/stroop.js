@@ -7,7 +7,7 @@ const COLORS=[{hex:"#e74c3c",zh:"红",en:"RED"},{hex:"#2ecc71",zh:"绿",en:"GREE
   {hex:"#3498db",zh:"蓝",en:"BLUE"},{hex:"#f1c40f",zh:"黄",en:"YELLOW"}];
 
 export const stroop = {
-  id:"stroop", min:1, max:8, nameKey:"c_t", descKey:"c_d",
+  id:"stroop", min:1, max:8, nameKey:"c_t", descKey:"c_d", howKey:"how_stroop",
   start(host,{level,end}){
     const trials=10+level*2;
     const windowMs=Math.max(900, 2600-level*200);
