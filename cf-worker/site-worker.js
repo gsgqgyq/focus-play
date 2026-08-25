@@ -43,21 +43,39 @@ export default {
     if (p === "/" ) p = "/index.html";
     if (p === "/focus-play/" ) p = "/focus-play/index.html";
     const target = BASE + p + url.search;
-    try {
+      try {
       const resp = await fetch(target, { cf: { cacheTtl: 300, cacheEverything: true } });
       if (resp.status === 404) {
         const idx = await fetch(BASE + "/index.html", { cf: { cacheEverything: true } });
-        return new Response(idx.body, { status: idx.status, headers: fixHeaders(idx) });
+        return new Response(idx.body, { status: idx.status, headers: fixHeaders(idx, "/index.html") });
       }
-      return new Response(resp.body, { status: resp.status, headers: fixHeaders(resp) });
+      return new Response(resp.body, { status: resp.status, headers: fixHeaders(resp, p) });
     } catch (e) {
       return new Response("upstream error", { status: 502 });
     }
   }
 };
 
-function fixHeaders(r) {
+function mime(p) {
+  if (p.endsWith(".html")) return "text/html; charset=utf-8";
+  if (p.endsWith(".css")) return "text/css; charset=utf-8";
+  if (p.endsWith(".js")) return "text/javascript; charset=utf-8";
+  if (p.endsWith(".json")) return "application/json; charset=utf-8";
+  if (p.endsWith(".svg")) return "image/svg+xml";
+  if (p.endsWith(".png")) return "image/png";
+  if (p.endsWith(".webp")) return "image/webp";
+  if (p.endsWith(".jpg")||p.endsWith(".jpeg")) return "image/jpeg";
+  if (p.endsWith(".ico")) return "image/x-icon";
+  if (p.endsWith(".woff2")) return "font/woff2";
+  if (p.endsWith(".txt")) return "text/plain; charset=utf-8";
+  return null;
+}
+function fixHeaders(r, p) {
   const h = new Headers(r.headers);
+  h.delete("content-security-policy");
+  h.delete("x-frame-options");
+  const t = mime(p||"");
+  if (t) h.set("Content-Type", t);
   h.set("Access-Control-Allow-Origin", "*");
   h.set("Cache-Control", "public, max-age=300");
   return h;
