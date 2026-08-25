@@ -42,7 +42,7 @@ const I18N = {
     st_breakdown:"分项成绩",
     // sync
     sync_title:"跨设备同步", sync_desc:"输入一个同步码，手机和电脑共享同一份训练档案（同一同步码即可）。",
-    sync_placeholder:"输入同步码…", sync_save:"保存", sync_ok:"已连接并同步", sync_err:"同步失败，请检查配置或网络", sync_nd:"未启用云端，仅本地保存",
+    sync_placeholder:"输入同步码…", sync_save:"保存", sync_link:"复制手机链接", sync_copied:"链接已复制，手机打开即同步", sync_ok:"已连接并同步", sync_err:"同步失败，请检查配置或网络", sync_nd:"未启用云端，仅本地保存",
     sync_local:"本地模式", 
     // misc
     back:"返回", start:"开始", stop:"结束", pause:"暂停", resume:"继续",
@@ -84,7 +84,7 @@ const I18N = {
     st_total:"Total focus", st_min:"minutes", st_today:"Today", st_streak:"Day streak", st_sessionsN:"sessions",
     st_breakdown:"Score breakdown",
     sync_title:"Cross-device sync", sync_desc:"Enter a sync code so phone and computer share one training profile (same sync code on all devices).",
-    sync_placeholder:"Enter sync code…", sync_save:"Save", sync_ok:"Connected & synced", sync_err:"Sync failed, check config or network", sync_nd:"Cloud sync not enabled, saving locally only",
+    sync_placeholder:"Enter sync code…", sync_save:"Save", sync_link:"Copy phone link", sync_copied:"Link copied — open on phone to sync", sync_ok:"Connected & synced", sync_err:"Sync failed, check config or network", sync_nd:"Cloud sync not enabled, saving locally only",
     sync_local:"Local mode",
     back:"Back", start:"Start", stop:"Stop", pause:"Pause",
     lang:"Language", theme:"Theme", music:"Music", voice:"Voice",

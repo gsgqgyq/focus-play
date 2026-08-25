@@ -48,12 +48,19 @@ const today=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d
 
 function renderSyncCard(){
   const configured=!!(window.FOCUSPLAY_CONFIG||{}).syncUrl;
+  // auto-bind via ?code= link (one-tap sync from another device)
+  const urlCode=new URLSearchParams(location.search).get("code");
+  if(urlCode && !store.getPref("syncCode","")){
+    store.setPref("syncCode", urlCode);
+    store.sync().then(ok=>toast(ok?t("sync_ok"):t("sync_err")));
+  }
   const box=$("syncCard");
   box.innerHTML=`<div class="sync-box">
     <h3>🔄 ${t("sync_title")}</h3><p>${t("sync_desc")}</p>
     <div class="sync-row">
       <input class="hint-input" id="syncInput" placeholder="${t("sync_placeholder")}" value="${store.getPref("syncCode","")}">
       <button class="btn" id="syncSave">${t("sync_save")}</button>
+      ${configured?`<button class="btn" id="syncLink">🔗 ${t("sync_link")}</button>`:""}
     </div>
     <div class="sync-status ${configured?'':'nd'}" id="syncStatus">${configured?"—":t("sync_nd")}</div>
   </div>`;
@@ -65,6 +72,14 @@ function renderSyncCard(){
     if(!r.configured){ st.className="sync-status nd"; st.textContent=t("sync_nd"); toast(t("sync_nd")); }
     else if(code && r.ok){ st.className="sync-status ok"; st.textContent=t("sync_ok"); toast(t("sync_ok")); renderHome(); }
     else { st.className="sync-status err"; st.textContent=t("sync_err"); toast(t("sync_err")); }
+  });
+  const linkBtn=$("syncLink");
+  if(linkBtn) linkBtn.addEventListener("click", async ()=>{
+    const code=store.getPref("syncCode","");
+    if(!code){ toast(t("sync_placeholder")); return; }
+    const link=`https://focusplay.516278.xyz/?code=${encodeURIComponent(code)}`;
+    try{ await navigator.clipboard.writeText(link); toast("✓ "+t("sync_copied")); }
+    catch(e){ prompt(t("sync_link"), link); }
   });
 }
 
