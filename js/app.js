@@ -54,6 +54,10 @@ function renderSyncCard(){
     store.setPref("syncCode", urlCode);
     store.sync().then(ok=>toast(ok?t("sync_ok"):t("sync_err")));
   }
+  // hidden by default: only show to the owner (code set or being set). Others never see it.
+  if(!store.getPref("syncCode","") && !urlCode){
+    $("syncCard").innerHTML=""; return;
+  }
   const box=$("syncCard");
   box.innerHTML=`<div class="sync-box">
     <h3>🔄 ${t("sync_title")}</h3><p>${t("sync_desc")}</p>
