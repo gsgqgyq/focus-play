@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a2e">
+<title>专注乐园 · FocusPlay</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <button class="brand" data-nav="home">
+    <span class="brand-mark">🎯</span><span class="brand-name">FocusPlay</span>
+  </button>
+  <nav id="mainnav" class="mainnav">
+    <button class="nav-btn" data-nav="games" data-i18n="nav_games">训练</button>
+    <button class="nav-btn" data-nav="timer" data-i18n="nav_timer">专注</button>
+    <button class="nav-btn" data-nav="breathe" data-i18n="nav_breathe">呼吸</button>
+    <button class="nav-btn" data-nav="stats" data-i18n="nav_stats">数据</button>
+  </nav>
+  <div class="topbar-actions">
+    <button id="musicBtn" class="icon-btn" title="音乐" aria-label="Music">🎵</button>
+    <button id="voiceBtn" class="icon-btn" title="语音" aria-label="Voice">🗣️</button>
+    <button id="themeBtn" class="icon-btn" title="主题" aria-label="Theme">🌙</button>
+    <button id="langBtn" class="pill-btn" title="语言">中 / EN</button>
+  </div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section id="view-home" class="view active">
+    <div class="hero">
+      <h1 data-i18n="hero_title">把专注练成肌肉</h1>
+      <p class="hero-sub" data-i18n="hero_sub">用被科学支持的训练，一点点变强。每天 5 分钟，比昨天更专注一点。</p>
+      <div class="today-row">
+        <div class="stat-chip"><span class="stat-num" id="todayMs">0</span><span class="stat-label" data-i18n="today_focus">今日专注</span></div>
+        <div class="stat-chip"><span class="stat-num" id="streakNum">0</span><span class="stat-label" data-i18n="streak">连续坚持</span></div>
+        <div class="stat-chip"><span class="stat-num" id="totalSessions">0</span><span class="stat-label" data-i18n="sessions">总次数</span></div>
+      </div>
+    </div>
+
+    <div class="card-grid" id="homeCards">
+      <!-- card 1: games -->
+      <article class="card link-card" data-nav="games">
+        <div class="card-icon">🧠</div>
+        <h2 data-i18n="card_games_t">专注训练</h2>
+        <p data-i18n="card_games_d">4 款科学背书的小游戏，从工作记忆到抗干扰，逐级解锁。</p>
+        <div class="card-tags"><span data-i18n="tag_nback">N-back</span><span data-i18n="tag_schulte">舒尔特</span><span>Stroop</span><span>Go/No-Go</span></div>
+      </article>
+      <article class="card link-card" data-nav="timer">
+        <div class="card-icon">⏱️</div>
+        <h2 data-i18n="card_timer_t">专注计时</h2>
+        <p data-i18n="card_timer_d">ADHD 友好的短专注段，番茄式节奏，累积你的专注时间。</p>
+      </article>
+      <article class="card link-card" data-nav="breathe">
+        <div class="card-icon">🌿</div>
+        <h2 data-i18n="card_breathe_t">呼吸 · 正念</h2>
+        <p data-i18n="card_breathe_d">3-7 次呼吸导航空腹呼吸，睡前助眠模式，放松身心。</p>
+      </article>
+      <article class="card link-card" data-nav="stats">
+        <div class="card-icon">📊</div>
+        <h2 data-i18n="card_stats_t">我的数据</h2>
+        <p data-i18n="card_stats_d">等级、成绩、时长跨端同步，见证自己的成长曲线。</p>
+      </article>
+    </div>
+
+    <div class="sync-card" id="syncCard"></div>
+  </section>
+
+  <!-- GAMES LIST -->
+  <section id="view-games" class="view">
+    <header class="view-head">
+      <h1 data-i18n="games_title">专注训练</h1>
+      <p data-i18n="games_sub">选择一款，开始今天的练习。</p>
+    </header>
+    <div class="card-grid" id="gamesGrid"></div>
+  </section>
+
+  <!-- GAME PLAY -->
+  <section id="view-play" class="view">
+    <div class="play-head">
+      <button class="icon-btn" data-nav="games" title="返回">←</button>
+      <h1 id="playTitle"></h1>
+      <span class="lvl-badge" id="playLevelBadge"></span>
+    </div>
+    <div id="playLevels" class="level-strip"></div>
+    <div id="playHost" class="play-host"></div>
+    <div class="play-controls" id="playControls"></div>
+  </section>
+
+  <!-- TIMER -->
+  <section id="view-timer" class="view">
+    <header class="view-head">
+      <h1 data-i18n="timer_title">专注计时</h1>
+      <p data-i18n="timer_sub">选一个长度，开始一段不受打扰的专注。</p>
+    </header>
+    <div class="timer-body">
+      <div class="timer-presets" id="timerPresets"></div>
+      <div class="timer-display" id="timerDisplay">25:00</div>
+      <div class="timer-progress"><div id="timerBar"></div></div>
+      <div class="timer-actions">
+        <button id="timerStartBtn" class="btn primary big" data-i18n="timer_start">开始</button>
+        <button id="timerPauseBtn" class="btn" data-i18n="timer_pause" style="display:none">暂停</button>
+        <button id="timerResetBtn" class="btn" data-i18n="timer_reset" style="display:none">重置</button>
+      </div>
+      <p class="timer-note" id="timerNote"></p>
+    </div>
+  </section>
+
+  <!-- BREATHE -->
+  <section id="view-breathe" class="view">
+    <header class="view-head">
+      <h1 data-i18n="breathe_title">呼吸 · 正念</h1>
+      <p data-i18n="breathe_sub">跟随圆环收缩与扩展，让呼吸慢下来。</p>
+    </header>
+    <div class="breathe-body">
+      <div class="breathe-modes" id="breatheModes"></div>
+      <div class="orb-wrap">
+        <div class="orb" id="orb"><span id="orbText">4</span></div>
+        <div class="orb-halo"></div>
+      </div>
+      <div class="breathe-step" id="breatheStep"></div>
+      <div class="breathe-actions">
+        <button id="breatheStartBtn" class="btn primary big" data-i18n="breathe_start">开始</button>
+        <button id="breatheStopBtn" class="btn" data-i18n="breathe_stop" style="display:none">结束</button>
+      </div>
+      <p class="timer-note" id="breatheNote"></p>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="view-stats" class="view">
+    <header class="view-head">
+      <h1 data-i18n="stats_title">我的数据</h1>
+      <p data-i18n="stats_sub">训练时长与成绩，已跨端同步。</p>
+    </header>
+    <div class="stats-total" id="statsTotal"></div>
+    <div id="statsBreakdown"></div>
+  </section>
+</main>
+
+<footer class="footer"></footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
