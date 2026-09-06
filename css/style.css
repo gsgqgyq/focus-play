@@ -2163,6 +2163,14 @@ main {
   align-items: center;
   gap: 12px;
   overflow: hidden;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  transition: var(--trans);
+}
+
+.pb-left:hover {
+  background: var(--accent-soft);
 }
 
 .pb-icon {
@@ -2194,19 +2202,42 @@ main {
   text-overflow: ellipsis;
 }
 
+.pb-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .pb-right button {
   font-size: 0.8rem;
   padding: 5px 12px;
   border-radius: var(--radius-pill);
-  background: var(--bg-subtle);
-  color: var(--text-muted);
-  border: 1px solid var(--card-border);
   transition: var(--trans);
 }
 
-.pb-right button:hover {
-  color: var(--bad);
-  border-color: var(--bad);
+.pb-resume-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent-light)) !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px var(--accent-soft);
+}
+
+.pb-resume-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px var(--accent-soft);
+}
+
+.pb-exit-btn {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--card-border);
+}
+
+.pb-exit-btn:hover {
+  color: var(--bad) !important;
+  border-color: var(--bad) !important;
 }
 
 /* 方案多步流转弹窗 */

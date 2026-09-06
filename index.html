@@ -194,13 +194,13 @@
 <!-- 全局多源白噪音控制器 (常驻底部 Dock) -->
 <div id="ambientDock" class="ambient-dock"></div>
 
-<!-- 隐藏的 YouTube 播放容器 (尺寸设为 1x1，免干扰视觉) -->
-<div id="ytPlayerContainer" style="position:fixed;bottom:-100px;right:-100px;width:1px;height:1px;overflow:hidden;pointer-events:none">
+<!-- YouTube 播放容器 (合规可见尺寸但透明，确保浏览器不拦截音频) -->
+<div id="ytPlayerContainer" style="position:fixed;bottom:10px;right:10px;width:200px;height:120px;opacity:0.005;pointer-events:none;z-index:-1;overflow:hidden">
   <div id="ytPlayerHost"></div>
 </div>
 
 <!-- 部署同源同步配置与主程序入口 -->
 <script>window.FOCUSPLAY_CONFIG = { syncUrl: "/api/sync" };</script>
-<script type="module" src="js/app.js?v=13"></script>
+<script type="module" src="js/app.js?v=14"></script>
 </body>
 </html>

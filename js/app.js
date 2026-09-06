@@ -461,7 +461,7 @@ function updatePlanBanner() {
   const step = plan.steps[stepIndex];
 
   banner.innerHTML = `
-    <div class="pb-left">
+    <div class="pb-left" id="pbResumeArea" title="点击立即返回当前训练步骤">
       <span class="pb-icon">${plan.icon}</span>
       <div class="pb-info">
         <span class="pb-title">${t("plan_running")}：${t(plan.titleKey)}</span>
@@ -469,13 +469,28 @@ function updatePlanBanner() {
       </div>
     </div>
     <div class="pb-right">
-      <button class="btn" id="pbExitBtn">${t("plan_exit")}</button>
+      <button class="btn primary small pb-resume-btn" id="pbResumeBtn">${t("plan_resume_btn")}</button>
+      <button class="btn small pb-exit-btn" id="pbExitBtn">${t("plan_exit")}</button>
     </div>
   `;
 
-  $("pbExitBtn").onclick = () => {
+  const resumePlan = () => {
+    sfx.click();
+    runCurrentStep();
+    toast(`已返回训练：${t(step.nameKey)}`);
+  };
+
+  const resumeArea = $("pbResumeArea");
+  if (resumeArea) resumeArea.onclick = resumePlan;
+
+  const resumeBtn = $("pbResumeBtn");
+  if (resumeBtn) resumeBtn.onclick = resumePlan;
+
+  $("pbExitBtn").onclick = (e) => {
+    e.stopPropagation();
     sfx.click();
     closePlanBanner();
+    toast("已退出当前训练方案");
   };
 }
 

@@ -1,9 +1,9 @@
-/* ambient.js — 双引擎多源白噪音控制器（YouTube IFrame 音源 + 本地 Web Audio 算法褐噪/粉噪） */
+/* ambient.js — 双引擎多源白噪音控制器（YouTube IFrame 音源 + 本地 Web Audio 算法褐噪/粉噪/绿噪/白噪/40Hz 脑波） */
 import { store } from "./state.js";
 import { proceduralAudio, sfx } from "./audio.js";
 import { t } from "./i18n.js";
 
-// 精选专为 ADHD 深度专注调配的音轨（含官方/无广告高品质长频与直播流）
+// 精选专为 ADHD 深度专注调配的音轨（本地无损算法音源优先，辅以 YouTube 经典长音频）
 export const AMBIENT_PRESETS = [
   {
     id: "local_brown",
@@ -20,6 +20,30 @@ export const AMBIENT_PRESETS = [
     icon: "🌧️",
     titleKey: "amb_pink_local",
     descKey: "amb_pink_local_d"
+  },
+  {
+    id: "local_stream",
+    type: "local",
+    noiseType: "stream",
+    icon: "🍃",
+    titleKey: "amb_stream_local",
+    descKey: "amb_stream_local_d"
+  },
+  {
+    id: "local_white",
+    type: "local",
+    noiseType: "white",
+    icon: "🛡️",
+    titleKey: "amb_white_local",
+    descKey: "amb_white_local_d"
+  },
+  {
+    id: "local_gamma",
+    type: "local",
+    noiseType: "gamma40",
+    icon: "⚡",
+    titleKey: "amb_gamma_local",
+    descKey: "amb_gamma_local_d"
   },
   {
     id: "yt_brown",
@@ -77,6 +101,21 @@ let isPlaying = false;
 let currentTrackId = store.getPref("ambientTrack", "local_brown");
 let volume = store.getPref("ambientVolume", 0.65);
 let ytPendingPlay = false;
+let ytTimeoutTimer = null;
+
+function showToast(msg) {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    el.className = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => el.classList.remove("show"), 2800);
+}
 
 /* 初始化 YouTube IFrame API */
 function initYouTubeAPI() {
@@ -88,6 +127,10 @@ function initYouTubeAPI() {
     const tag = document.createElement("script");
     tag.id = "yt-iframe-script";
     tag.src = "https://www.youtube.com/iframe_api";
+    tag.onerror = () => {
+      console.warn("[FocusPlay] YouTube IFrame API script load failed (network blocked).");
+      fallbackToLocal(t("amb_yt_blocked"));
+    };
     const firstScriptTag = document.getElementsByTagName("script")[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
   }
@@ -98,37 +141,50 @@ function onYouTubeIframeAPIReady() {
   const container = document.getElementById("ytPlayerHost");
   if (!container) return;
 
-  ytPlayer = new window.YT.Player("ytPlayerHost", {
-    height: "1",
-    width: "1",
-    videoId: "RqzGzwTY-6w",
-    playerVars: {
-      autoplay: 0,
-      controls: 0,
-      disablekb: 1,
-      fs: 0,
-      loop: 1,
-      modestbranding: 1,
-      playsinline: 1,
-      rel: 0
-    },
-    events: {
-      onReady: () => {
-        ytReady = true;
-        ytPlayer.setVolume(Math.round(volume * 100));
-        if (ytPendingPlay) {
-          ytPendingPlay = false;
-          playCurrent();
-        }
+  try {
+    ytPlayer = new window.YT.Player("ytPlayerHost", {
+      height: "120",
+      width: "200",
+      videoId: "RqzGzwTY-6w",
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        loop: 1,
+        modestbranding: 1,
+        playsinline: 1,
+        rel: 0
       },
-      onStateChange: (e) => {
-        // 自动循环播放
-        if (e.data === window.YT.PlayerState.ENDED) {
-          ytPlayer.playVideo();
+      events: {
+        onReady: () => {
+          ytReady = true;
+          clearTimeout(ytTimeoutTimer);
+          try {
+            ytPlayer.setVolume(Math.round(volume * 100));
+            ytPlayer.unMute();
+          } catch (e) {}
+          if (ytPendingPlay) {
+            ytPendingPlay = false;
+            playCurrent();
+          }
+        },
+        onStateChange: (e) => {
+          // 自动循环播放
+          if (e.data === window.YT.PlayerState.ENDED) {
+            try { ytPlayer.playVideo(); } catch (err) {}
+          }
+        },
+        onError: (e) => {
+          console.warn("[FocusPlay] YouTube player error code:", e.data);
+          fallbackToLocal(t("amb_yt_error"));
         }
       }
-    }
-  });
+    });
+  } catch (err) {
+    console.warn("[FocusPlay] Error initializing YT.Player:", err);
+    fallbackToLocal(t("amb_yt_blocked"));
+  }
 }
 
 function extractYouTubeId(urlOrId) {
@@ -154,37 +210,68 @@ function getTrack(id) {
   return AMBIENT_PRESETS.find(p => p.id === id) || AMBIENT_PRESETS[0];
 }
 
+function fallbackToLocal(reasonMsg) {
+  if (reasonMsg) showToast(reasonMsg);
+  currentTrackId = "local_brown";
+  store.setPref("ambientTrack", "local_brown");
+  if (ytPlayer && ytReady && typeof ytPlayer.pauseVideo === "function") {
+    try { ytPlayer.pauseVideo(); } catch (e) {}
+  }
+  proceduralAudio.start("brown", volume);
+  isPlaying = true;
+  updateUI();
+}
+
 function playCurrent() {
   const track = getTrack(currentTrackId);
   if (!track) return;
 
+  // 1. 彻底停止本地算法白噪音（零残留）
+  proceduralAudio.stop();
+
+  // 2. 停止当前正在播放的 YouTube 视频
+  if (ytPlayer && ytReady && typeof ytPlayer.pauseVideo === "function") {
+    try { ytPlayer.pauseVideo(); } catch (e) {}
+  }
+
   if (track.type === "local") {
-    // 停止 YouTube
-    if (ytPlayer && ytReady && typeof ytPlayer.pauseVideo === "function") {
-      try { ytPlayer.pauseVideo(); } catch (e) {}
-    }
     proceduralAudio.start(track.noiseType || "brown", volume);
     isPlaying = true;
+    updateUI();
   } else if (track.type === "youtube") {
-    // 停止本地算法噪音
-    proceduralAudio.stop();
+    isPlaying = true;
+    updateUI();
+
     if (!ytReady) {
       ytPendingPlay = true;
       initYouTubeAPI();
-      isPlaying = true;
-      updateUI();
+      clearTimeout(ytTimeoutTimer);
+      ytTimeoutTimer = setTimeout(() => {
+        if (!ytReady && isPlaying && getTrack(currentTrackId).type === "youtube") {
+          console.warn("[FocusPlay] YouTube connection timeout, fallback to local.");
+          fallbackToLocal(t("amb_yt_timeout"));
+        }
+      }, 4000);
       return;
     }
-    const currentVideoUrl = ytPlayer.getVideoUrl ? ytPlayer.getVideoUrl() : "";
-    if (!currentVideoUrl.includes(track.ytId)) {
-      ytPlayer.loadVideoById(track.ytId);
-    } else {
-      ytPlayer.playVideo();
+
+    try {
+      const currentVideoUrl = ytPlayer.getVideoUrl ? ytPlayer.getVideoUrl() : "";
+      if (!currentVideoUrl || !currentVideoUrl.includes(track.ytId)) {
+        ytPlayer.loadVideoById({
+          videoId: track.ytId,
+          startSeconds: 0
+        });
+      } else {
+        ytPlayer.playVideo();
+      }
+      ytPlayer.setVolume(Math.round(volume * 100));
+      ytPlayer.unMute();
+    } catch (err) {
+      console.warn("[FocusPlay] YouTube play failed:", err);
+      fallbackToLocal(t("amb_yt_error"));
     }
-    ytPlayer.setVolume(Math.round(volume * 100));
-    isPlaying = true;
   }
-  updateUI();
 }
 
 function pauseCurrent() {
@@ -231,11 +318,8 @@ export const ambientPlayer = {
   selectTrack(trackId) {
     currentTrackId = trackId;
     store.setPref("ambientTrack", trackId);
-    if (isPlaying) {
-      playCurrent();
-    } else {
-      updateUI();
-    }
+    // 用户主动点击选择音轨，立即启动播放
+    playCurrent();
   },
 
   setVolume(newVol) {
@@ -243,7 +327,7 @@ export const ambientPlayer = {
     store.setPref("ambientVolume", volume);
     proceduralAudio.setVolume(volume);
     if (ytPlayer && ytReady && typeof ytPlayer.setVolume === "function") {
-      ytPlayer.setVolume(Math.round(volume * 100));
+      try { ytPlayer.setVolume(Math.round(volume * 100)); } catch (e) {}
     }
     updateUI();
   },

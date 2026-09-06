@@ -106,8 +106,44 @@ function createNoiseBuffer(c, type = "brown", seconds = 5) {
 
   if (type === "white") {
     for (let i = 0; i < bufferSize; i++) {
-      left[i] = (Math.random() * 2 - 1) * 0.25;
-      right[i] = (Math.random() * 2 - 1) * 0.25;
+      left[i] = (Math.random() * 2 - 1) * 0.22;
+      right[i] = (Math.random() * 2 - 1) * 0.22;
+    }
+  } else if (type === "stream") {
+    // 森林绿噪/自然溪流：基于粉噪结合低频波动包络调制
+    let b0 = 0, b1 = 0, b2 = 0;
+    let rb0 = 0, rb1 = 0, rb2 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const whiteL = Math.random() * 2 - 1;
+      b0 = 0.99 * b0 + whiteL * 0.05;
+      b1 = 0.95 * b1 + whiteL * 0.15;
+      b2 = 0.70 * b2 + whiteL * 0.35;
+      const modL = 0.75 + 0.25 * Math.sin((2 * Math.PI * 0.2 * i) / c.sampleRate);
+      left[i] = (b0 + b1 + b2) * 0.09 * modL;
+
+      const whiteR = Math.random() * 2 - 1;
+      rb0 = 0.99 * rb0 + whiteR * 0.05;
+      rb1 = 0.95 * rb1 + whiteR * 0.15;
+      rb2 = 0.70 * rb2 + whiteR * 0.35;
+      const modR = 0.75 + 0.25 * Math.sin((2 * Math.PI * 0.2 * i) / c.sampleRate + 1.2);
+      right[i] = (rb0 + rb1 + rb2) * 0.09 * modR;
+    }
+  } else if (type === "gamma40") {
+    // 40Hz 伽马脑波聚焦节律：低频粉噪叠加 40Hz 节律性微调谐振动
+    let b0 = 0, b1 = 0;
+    let rb0 = 0, rb1 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const whiteL = Math.random() * 2 - 1;
+      b0 = 0.98 * b0 + whiteL * 0.08;
+      b1 = 0.85 * b1 + whiteL * 0.22;
+      const pulseL = 0.7 + 0.3 * Math.sin((2 * Math.PI * 40.0 * i) / c.sampleRate);
+      left[i] = (b0 + b1) * 0.11 * pulseL;
+
+      const whiteR = Math.random() * 2 - 1;
+      rb0 = 0.98 * rb0 + whiteR * 0.08;
+      rb1 = 0.85 * rb1 + whiteR * 0.22;
+      const pulseR = 0.7 + 0.3 * Math.sin((2 * Math.PI * 40.0 * i) / c.sampleRate + Math.PI / 2);
+      right[i] = (rb0 + rb1) * 0.11 * pulseR;
     }
   } else if (type === "pink") {
     // Paul Kellet's filter method for pink noise
@@ -169,7 +205,7 @@ export const proceduralAudio = {
     src.buffer = buffer;
     src.loop = true;
 
-    // 添加适度的双二阶低通滤波，让声音更加温和不刺耳
+    // 针对不同频段特性的高保真低通/带通滤波
     const filter = c.createBiquadFilter();
     if (type === "brown") {
       filter.type = "lowpass";
@@ -177,9 +213,19 @@ export const proceduralAudio = {
     } else if (type === "pink") {
       filter.type = "lowpass";
       filter.frequency.value = 1600; // 雨声质感
+    } else if (type === "stream") {
+      filter.type = "lowpass";
+      filter.frequency.value = 1200; // 溪流绿噪
+    } else if (type === "gamma40") {
+      filter.type = "lowpass";
+      filter.frequency.value = 500;  // 40Hz 伽马微频
+    } else if (type === "white") {
+      filter.type = "bandpass";
+      filter.frequency.value = 2200; // 白噪音杂音屏蔽带
+      filter.Q.value = 0.4;
     } else {
       filter.type = "lowpass";
-      filter.frequency.value = 3200;
+      filter.frequency.value = 2000;
     }
 
     src.connect(filter);
@@ -188,27 +234,27 @@ export const proceduralAudio = {
     const now = c.currentTime;
     noiseGain.gain.cancelScheduledValues(now);
     noiseGain.gain.setValueAtTime(0.0001, now);
-    noiseGain.gain.linearRampToValueAtTime(Math.min(1.0, volume), now + 1.2);
+    noiseGain.gain.linearRampToValueAtTime(Math.min(1.0, volume), now + 0.6);
 
     src.start();
     noiseNode = src;
   },
   stop() {
     if (noiseNode) {
-      const c = getAudioContext();
-      if (c && noiseGain) {
+      try {
+        noiseNode.stop();
+        noiseNode.disconnect();
+      } catch (e) {}
+      noiseNode = null;
+      currentNoiseType = null;
+    }
+    const c = getAudioContext();
+    if (c && noiseGain) {
+      try {
         const now = c.currentTime;
         noiseGain.gain.cancelScheduledValues(now);
-        noiseGain.gain.setValueAtTime(noiseGain.gain.value, now);
-        noiseGain.gain.linearRampToValueAtTime(0.0001, now + 0.8);
-      }
-      setTimeout(() => {
-        try {
-          if (noiseNode) noiseNode.stop();
-        } catch (e) {}
-        noiseNode = null;
-        currentNoiseType = null;
-      }, 900);
+        noiseGain.gain.setValueAtTime(0.0001, now);
+      } catch (e) {}
     }
   },
   setVolume(vol) {
@@ -217,7 +263,11 @@ export const proceduralAudio = {
     const now = c.currentTime;
     const target = Math.max(0, Math.min(1, vol));
     noiseGain.gain.cancelScheduledValues(now);
-    noiseGain.gain.setTargetAtTime(target, now, 0.1);
+    if (noiseNode) {
+      noiseGain.gain.setTargetAtTime(target, now, 0.08);
+    } else {
+      noiseGain.gain.setValueAtTime(0.0001, now);
+    }
   }
 };
 
