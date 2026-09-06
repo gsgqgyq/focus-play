@@ -38,11 +38,27 @@ let currentGame = null;
 let currentLevel = 1;
 let currentAbort = null;
 
+/* ---------- 游戏终止与清理 ---------- */
+export function abortCurrentGame() {
+  if (currentAbort) {
+    try {
+      if (typeof currentAbort.abort === "function") {
+        currentAbort.abort();
+      } else if (typeof currentAbort === "function") {
+        currentAbort();
+      }
+    } catch (e) {
+      console.warn("[FocusPlay] Game abort error:", e);
+    }
+    currentAbort = null;
+  }
+}
+
 /* ---------- 视图切换路由 ---------- */
 export function navigateTo(view) {
-  if (currentGame && currentAbort) {
-    try { currentAbort(); } catch (e) {}
-    currentAbort = null;
+  // 切离训练游戏时立即中止后台计时、刺激刷新与按键监听，防止后台偷跑
+  if (view !== "play") {
+    abortCurrentGame();
   }
   currentView = view;
 
@@ -57,6 +73,9 @@ export function navigateTo(view) {
   if (view === "games") renderGames();
   if (view === "stats") renderStats();
   if (view === "play") paintLevelStrip();
+
+  // 始终在路由切换后同步更新方案状态底栏
+  updatePlanBanner();
 
   window.dispatchEvent(new CustomEvent("ff:view", { detail: view }));
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -357,6 +376,12 @@ window.addEventListener("ff:record", (e) => {
   if (!activePlanState) return;
   const { plan, stepIndex } = activePlanState;
   const step = plan.steps[stepIndex];
+  if (!step) return;
+
+  const isPass = e.detail && (e.detail.pass === true || (e.detail.r && e.detail.r.history && e.detail.r.history[e.detail.r.history.length - 1]?.pass));
+
+  // 必须通关达标才推进训练方案步骤！未通关允许用户在当前关卡点击重新挑战
+  if (!isPass) return;
 
   if (step.type === "game" && step.gameId === e.detail.gameId) {
     onStepComplete();
@@ -370,7 +395,7 @@ window.addEventListener("ff:focus", () => {
   if (!activePlanState) return;
   const { plan, stepIndex } = activePlanState;
   const step = plan.steps[stepIndex];
-  if (step.type === "timer") {
+  if (step && step.type === "timer") {
     onStepComplete();
   }
 });
@@ -437,7 +462,9 @@ function onStepComplete() {
     $("psmPauseBtn").onclick = () => {
       sfx.click();
       modal.classList.remove("show");
-      closePlanBanner();
+      activePlanState.stepIndex++;
+      updatePlanBanner();
+      toast(t("plan_pause_toast"));
     };
   }
 }
@@ -456,48 +483,125 @@ function showPlanBanner() {
 
 function updatePlanBanner() {
   const banner = $("planBanner");
-  if (!banner || !activePlanState) return;
+  if (!banner) return;
+  if (!activePlanState) {
+    banner.style.display = "none";
+    banner.classList.remove("is-active", "is-paused");
+    return;
+  }
   const { plan, stepIndex } = activePlanState;
   const step = plan.steps[stepIndex];
+  if (!step) {
+    banner.style.display = "none";
+    banner.classList.remove("is-active", "is-paused");
+    return;
+  }
+  banner.style.display = "flex";
+
+  // 精准判断用户当前是否正处于本训练步骤的对应界面中
+  let isStepActive = false;
+  let isOtherGame = false;
+
+  if (step.type === "game") {
+    if (currentView === "play") {
+      if (currentGame && currentGame.id === step.gameId) {
+        isStepActive = true;
+      } else {
+        isOtherGame = true;
+      }
+    }
+  } else if (step.type === "timer") {
+    if (currentView === "timer") {
+      isStepActive = true;
+    }
+  } else if (step.type === "breathe") {
+    if (currentView === "breathe") {
+      isStepActive = true;
+    }
+  }
+
+  banner.classList.toggle("is-active", isStepActive);
+  banner.classList.toggle("is-paused", !isStepActive);
+
+  let statusBadgeHtml = "";
+  let actionsHtml = "";
+
+  if (isStepActive) {
+    statusBadgeHtml = `<span class="pb-badge pb-badge-active"><span class="pb-dot"></span>${t("plan_running")}</span>`;
+    actionsHtml = `
+      <span class="pb-status-tip">${t("plan_step_in_progress")}</span>
+      <button class="btn small pb-exit-btn" id="pbExitBtn" title="${t("plan_exit")}">${t("plan_exit")}</button>
+    `;
+  } else if (isOtherGame) {
+    statusBadgeHtml = `<span class="pb-badge pb-badge-paused">${t("plan_other_game")}</span>`;
+    actionsHtml = `
+      <button class="btn primary small pb-resume-btn" id="pbResumeBtn">${t("plan_back_to_plan")}</button>
+      <button class="btn small pb-exit-btn" id="pbExitBtn" title="${t("plan_exit")}">✕</button>
+    `;
+  } else {
+    statusBadgeHtml = `<span class="pb-badge pb-badge-paused">${t("plan_paused")}</span>`;
+    actionsHtml = `
+      <button class="btn primary small pb-resume-btn" id="pbResumeBtn">${t("plan_resume_btn")}</button>
+      <button class="btn small pb-exit-btn" id="pbExitBtn" title="${t("plan_exit")}">${t("plan_exit")}</button>
+    `;
+  }
+
+  const stepName = t(step.nameKey);
+  const planTitle = t(plan.titleKey);
 
   banner.innerHTML = `
-    <div class="pb-left" id="pbResumeArea" title="点击立即返回当前训练步骤">
+    <div class="pb-left" id="pbResumeArea" title="${isStepActive ? '' : '点击立即进入该步骤训练'}">
       <span class="pb-icon">${plan.icon}</span>
       <div class="pb-info">
-        <span class="pb-title">${t("plan_running")}：${t(plan.titleKey)}</span>
-        <span class="pb-step">${t("plan_step_n", { i: stepIndex + 1, total: plan.steps.length, name: t(step.nameKey) })}</span>
+        <div class="pb-row1">
+          <span class="pb-title">${planTitle}</span>
+          ${statusBadgeHtml}
+        </div>
+        <span class="pb-step">${t("plan_step_n", { i: stepIndex + 1, total: plan.steps.length, name: stepName })}</span>
       </div>
     </div>
     <div class="pb-right">
-      <button class="btn primary small pb-resume-btn" id="pbResumeBtn">${t("plan_resume_btn")}</button>
-      <button class="btn small pb-exit-btn" id="pbExitBtn">${t("plan_exit")}</button>
+      ${actionsHtml}
     </div>
   `;
 
   const resumePlan = () => {
     sfx.click();
     runCurrentStep();
-    toast(`已返回训练：${t(step.nameKey)}`);
+    toast(`${t("plan_resume_btn")}: ${t(step.nameKey)}`);
   };
 
   const resumeArea = $("pbResumeArea");
-  if (resumeArea) resumeArea.onclick = resumePlan;
+  if (resumeArea && !isStepActive) {
+    resumeArea.onclick = resumePlan;
+  }
 
   const resumeBtn = $("pbResumeBtn");
-  if (resumeBtn) resumeBtn.onclick = resumePlan;
+  if (resumeBtn) {
+    resumeBtn.onclick = (e) => {
+      e.stopPropagation();
+      resumePlan();
+    };
+  }
 
-  $("pbExitBtn").onclick = (e) => {
-    e.stopPropagation();
-    sfx.click();
-    closePlanBanner();
-    toast("已退出当前训练方案");
-  };
+  const exitBtn = $("pbExitBtn");
+  if (exitBtn) {
+    exitBtn.onclick = (e) => {
+      e.stopPropagation();
+      sfx.click();
+      closePlanBanner();
+      toast(t("plan_exited"));
+    };
+  }
 }
 
 function closePlanBanner() {
   activePlanState = null;
   const banner = $("planBanner");
-  if (banner) banner.style.display = "none";
+  if (banner) {
+    banner.style.display = "none";
+    banner.classList.remove("is-active", "is-paused");
+  }
 }
 
 /* ---------- 游戏大厅渲染 ---------- */
@@ -564,6 +668,7 @@ function renderGames() {
 
 /* ---------- 游戏运行容器与控制 ---------- */
 export function openPlay(game, level) {
+  abortCurrentGame();
   currentGame = game;
   navigateTo("play");
   $("playTitle").textContent = t(game.nameKey);
@@ -571,6 +676,7 @@ export function openPlay(game, level) {
   paintLevelStrip();
   setupHelpDrawer(game);
   startLevel(game, currentLevel);
+  updatePlanBanner();
 }
 
 function setupHelpDrawer(game) {
@@ -642,10 +748,7 @@ function paintLevelStrip() {
 }
 
 function startLevel(game, level) {
-  if (currentAbort) {
-    try { currentAbort(); } catch (e) {}
-    currentAbort = null;
-  }
+  abortCurrentGame();
   currentLevel = level;
   currentGame = game;
 
@@ -847,6 +950,11 @@ window.addEventListener("ff:lang", () => {
     paintLevelStrip();
   }
   if (currentView === "stats") renderStats();
+  updatePlanBanner();
+});
+
+window.addEventListener("beforeunload", () => {
+  abortCurrentGame();
 });
 
 // 模块初始化

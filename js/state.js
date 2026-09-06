@@ -72,7 +72,7 @@ export const store = {
 
     this._persist();
     this._push();
-    window.dispatchEvent(new CustomEvent("ff:record", { detail: { gameId, r } }));
+    window.dispatchEvent(new CustomEvent("ff:record", { detail: { gameId, r, pass: !!pass } }));
     return r;
   },
 
