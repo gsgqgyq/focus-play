@@ -723,6 +723,21 @@ function paintLevelStrip() {
   const uni = unlockedLvl(g, r);
 
   $("playLevelBadge").textContent = `${t("level")} ${currentLevel}`;
+
+  // 顶栏实时历史最高纪录勋章
+  const bestBadge = $("playBestBadge");
+  const bestScoreVal = $("playBestScoreVal");
+  const allBest = r ? (r.bestScore || 0) : 0;
+  if (bestBadge && bestScoreVal) {
+    if (allBest > 0) {
+      bestBadge.style.display = "inline-flex";
+      bestScoreVal.textContent = `${allBest}`;
+      bestBadge.title = `${t(g.nameKey)} 历史最高得分: ${allBest}分`;
+    } else {
+      bestBadge.style.display = "none";
+    }
+  }
+
   $("playLevels").innerHTML = Array.from({ length: g.max }, (_, i) => i + 1).map(l => {
     const isCur = l === currentLevel;
     const isDone = passed.has(l);
@@ -747,6 +762,42 @@ function paintLevelStrip() {
   });
 }
 
+// 渲染个人战绩排行榜
+function renderLeaderboardHtml(gameId, currentTs = null) {
+  const r = store.records[gameId];
+  const history = (r ? r.history : []).filter(h => h.pass);
+  // 按得分从高到低降序排序
+  const sorted = [...history].sort((a, b) => b.score - a.score);
+  // 选取最高的前 5 条
+  const topList = sorted.slice(0, 5);
+
+  if (topList.length === 0) {
+    return `<div class="lb-empty">${t("leaderboard_empty")}</div>`;
+  }
+
+  const medals = ["🥇", "🥈", "🥉", "4", "5"];
+  return `
+    <div class="lb-list">
+      ${topList.map((item, idx) => {
+        const isCurrent = currentTs && item.ts === currentTs;
+        const medal = medals[idx] || `${idx + 1}`;
+        const d = new Date(item.ts);
+        const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+        return `
+          <div class="lb-row ${isCurrent ? 'highlight' : ''}">
+            <div class="lb-row-left">
+              <span class="lb-rank">${medal}</span>
+              <span class="lb-lvl">L${item.lvl}</span>
+              <span class="lb-date">${dateStr}</span>
+            </div>
+            <span class="lb-score">${item.score}<small>${t("score_unit")}</small></span>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 function startLevel(game, level) {
   abortCurrentGame();
   currentLevel = level;
@@ -756,7 +807,15 @@ function startLevel(game, level) {
   host.innerHTML = "";
   $("playControls").innerHTML = "";
 
-  // 引导说明卡片（含神经科学依据）
+  const r = store.records[game.id];
+  const allBest = r ? (r.bestScore || 0) : 0;
+  const lbHtml = renderLeaderboardHtml(game.id);
+
+  const targetText = allBest > 0
+    ? t("target_beat", { score: allBest })
+    : t("first_challenge");
+
+  // 引导说明卡片（含神经科学依据 + 历史战绩排行榜与超越目标）
   host.innerHTML = `
     <div class="card play-intro-card">
       <div class="intro-head">
@@ -773,6 +832,13 @@ function startLevel(game, level) {
       <div class="intro-rule-box">
         <b>🎮 玩法与操作规则：</b>
         <p>${t(game.howKey)}</p>
+      </div>
+      <div class="intro-leaderboard-box">
+        <div class="intro-lb-head">
+          <span class="intro-lb-title">🏆 ${t("leaderboard_title")}</span>
+          <span class="intro-target-tip">${targetText}</span>
+        </div>
+        ${lbHtml}
       </div>
       <div class="intro-actions">
         <button class="btn primary big" id="introGo">▶ ${t("start")}</button>
@@ -791,12 +857,20 @@ function startLevel(game, level) {
 }
 
 function onLevelEnd(game, entry, level) {
+  const rBefore = store.records[game.id];
+  const prevBest = rBefore ? (rBefore.bestScore || 0) : 0;
+
+  const thisTs = Date.now();
   store.record(game.id, {
     level,
     score: entry.score,
     ms: entry.ms,
-    pass: entry.pass
+    pass: entry.pass,
+    extra: { ts: thisTs }
   });
+
+  const isNewRecord = entry.pass && entry.score > prevBest && prevBest > 0;
+  const isFirstPass = entry.pass && prevBest === 0;
 
   if (entry.pass) {
     sfx.levelup();
@@ -818,21 +892,56 @@ function onLevelEnd(game, entry, level) {
       `).join("")
     : "";
 
+  let recordBannerHtml = "";
+  if (isNewRecord) {
+    recordBannerHtml = `<div class="new-record-banner">${t("new_record_cheer")} +${entry.score - prevBest}${t("score_unit")}</div>`;
+  } else if (isFirstPass) {
+    recordBannerHtml = `<div class="new-record-banner">🎉 恭喜建立首个高分纪录！${entry.score}${t("score_unit")}</div>`;
+  }
+
+  let diffHtml = "";
+  if (!isNewRecord && !isFirstPass && prevBest > 0) {
+    const diff = prevBest - entry.score;
+    if (diff > 0) {
+      diffHtml = `<div class="diff-to-best">${t("diff_to_best", { diff: `<b>${diff}</b>` })}</div>`;
+    } else {
+      diffHtml = `<div class="diff-to-best">追平历史最高纪录！突破在即！</div>`;
+    }
+  }
+
+  const lbHtml = renderLeaderboardHtml(game.id, thisTs);
+
   $("playHost").innerHTML = `
     <div class="card result-card">
       <div class="result-icon">${entry.pass ? "🎉" : "💪"}</div>
       <h2>${entry.pass ? t("s_great") : t("s_oops")}</h2>
+      ${recordBannerHtml}
       <div class="result-hud">
         <div class="rh-item">
-          <span>关卡得分</span>
+          <span>本次得分</span>
           <b>${entry.score}</b>
+        </div>
+        <div class="rh-item">
+          <span>历史最高</span>
+          <b style="color:#ffc107">${Math.max(entry.score, prevBest)}</b>
         </div>
         <div class="rh-item">
           <span>挑战关卡</span>
           <b>L${level}</b>
         </div>
       </div>
+      ${diffHtml}
       ${sumHtml ? `<div class="result-metrics-grid">${sumHtml}</div>` : ""}
+
+      <!-- 个人战绩高分榜 -->
+      <div class="result-leaderboard-box" style="margin-top:14px">
+        <div class="intro-lb-head">
+          <span class="intro-lb-title">🏅 ${t("leaderboard_title")}</span>
+          <span class="intro-target-tip">${t("best")}: L${r.bestLevel} · ${r.bestScore}分</span>
+        </div>
+        ${lbHtml}
+      </div>
+
       <div class="play-controls" style="margin-top:20px">
         <button class="btn" data-act="retry">🔄 ${t("retry")}</button>
         ${entry.pass && !allDone ? `<button class="btn primary" data-act="next">${t("next")} →</button>` : ""}
@@ -889,6 +998,23 @@ function renderStats() {
 
   let rows = GAMES.map(g => {
     const r = store.records[g.id];
+    const history = (r ? r.history : []).filter(h => h.pass);
+    const top3 = [...history].sort((a, b) => b.score - a.score).slice(0, 3);
+    const medals = ["🥇", "🥈", "🥉"];
+
+    const topHtml = top3.length > 0 ? `
+      <div class="stats-top-row">
+        <span class="stats-top-title">🏆 荣誉纪录：</span>
+        <div class="stats-top-chips">
+          ${top3.map((h, i) => `
+            <span class="stats-top-chip">
+              <b>${medals[i]}</b> L${h.lvl} · <strong>${h.score}</strong>${t("score_unit")}
+            </span>
+          `).join("")}
+        </div>
+      </div>
+    ` : "";
+
     const recent = (r ? r.history : []).slice(-15).map(h => `
       <span class="${h.pass ? 'pass' : 'fail'}" title="${h.pass ? '通关' : '未达标'}">
         L${h.lvl} · ${h.score}分
@@ -899,8 +1025,10 @@ function renderStats() {
       <div class="panel stats-panel">
         <div class="stats-panel-head">
           <h3>${g.icon} ${t(g.nameKey)}</h3>
-          <small>${t("best")} L${r ? r.bestLevel : 1} · 训练 ${r ? r.sessions : 0} 次</small>
+          <small>${t("best")} L${r ? r.bestLevel : 1} · 训练 ${r ? r.sessions : 0} 次 · 最高 ${r ? (r.bestScore || 0) : 0}分</small>
         </div>
+        ${topHtml}
+        <div class="stats-recent-label">最近走势：</div>
         ${recent ? `<div class="recent">${recent}</div>` : `<p class="empty-hint">— 暂无训练记录 —</p>`}
       </div>
     `;

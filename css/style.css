@@ -692,6 +692,164 @@ main {
 .rm-k { color: var(--text-muted); }
 .rm-v { font-weight: 700; color: var(--text); }
 
+/* 顶栏历史最高分数勋章 */
+.play-best-hud {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  color: #ffc107;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: var(--trans);
+}
+
+.play-best-hud b {
+  color: #ffca28;
+  font-weight: 800;
+}
+
+/* 个人历史高分榜 (Leaderboard) */
+.intro-leaderboard-box, .result-leaderboard-box {
+  background: var(--bg-subtle);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.intro-lb-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.intro-lb-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+
+.intro-target-tip {
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.lb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  font-size: 0.82rem;
+  transition: var(--trans);
+  border: 1px solid transparent;
+}
+
+.lb-row.highlight {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.12);
+}
+
+.lb-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lb-rank {
+  font-size: 0.95rem;
+  font-weight: 700;
+  min-width: 22px;
+  text-align: center;
+}
+
+.lb-lvl {
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.lb-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.lb-score {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.lb-score small {
+  font-size: 0.72rem;
+  font-weight: normal;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
+.lb-empty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 8px 0;
+  margin: 0;
+}
+
+/* 破纪录动效横幅 */
+.new-record-banner {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.22), rgba(255, 165, 0, 0.22));
+  border: 1.5px solid #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.35);
+  border-radius: var(--radius-pill);
+  padding: 6px 16px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffd700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px auto 4px auto;
+  animation: recordGlow 2s infinite ease-in-out;
+}
+
+@keyframes recordGlow {
+  0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); transform: scale(0.98); }
+  50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.55); transform: scale(1.02); }
+  100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); transform: scale(0.98); }
+}
+
+.diff-to-best {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.diff-to-best b {
+  color: #ff9f43;
+}
+
 /* ---------- 游戏 1: Flanker ---------- */
 .flanker-arena {
   min-height: 140px;
@@ -1763,6 +1921,45 @@ main {
 .empty-hint {
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+.stats-top-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 10px 0;
+  flex-wrap: wrap;
+}
+
+.stats-top-title {
+  font-size: 0.78rem;
+  color: #ffc107;
+  font-weight: 700;
+}
+
+.stats-top-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.stats-top-chip {
+  background: var(--bg-card);
+  border: 1px solid var(--card-border);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.76rem;
+  color: var(--text);
+}
+
+.stats-top-chip strong {
+  color: var(--accent);
+}
+
+.stats-recent-label {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
 }
 
 /* ---------- 同步卡片 ---------- */
