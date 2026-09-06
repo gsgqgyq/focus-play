@@ -80,13 +80,12 @@ export const flanker = {
     let running = true;
     let stimStart = 0;
 
-    const timeouts = [];
-    const later = (fn, ms) => {
-      const id = setTimeout(fn, ms);
-      timeouts.push(id);
-      return id;
-    };
-    const clearTimeouts = () => timeouts.forEach(clearTimeout);
+    let trialTimer = null;
+    let stepTimer = null;
+    function clearTimers() {
+      if (trialTimer) { clearTimeout(trialTimer); trialTimer = null; }
+      if (stepTimer) { clearTimeout(stepTimer); stepTimer = null; }
+    }
 
     function updateHud() {
       const hEl = host.querySelector('[data-c="hits"] b');
@@ -101,7 +100,7 @@ export const flanker = {
 
     function finish() {
       running = false;
-      clearTimeouts();
+      clearTimers();
       const avgRt = hits > 0 ? Math.round(totalRt / hits) : 999;
       const acc = Math.round((hits / trials) * 100);
       const meanCong = congRt.length ? Math.round(congRt.reduce((a, b) => a + b, 0) / congRt.length) : avgRt;
@@ -131,6 +130,7 @@ export const flanker = {
         finish();
         return;
       }
+      clearTimers(); // 清理旧定时器，杜绝试次时间重叠！
       idx = i;
       responded = false;
       updateHud();
@@ -139,7 +139,7 @@ export const flanker = {
       stimBox.style.display = "none";
       fixEl.style.display = "block";
 
-      later(() => {
+      stepTimer = setTimeout(() => {
         if (!running) return;
         fixEl.style.display = "none";
         stimBox.style.display = "flex";
@@ -160,16 +160,14 @@ export const flanker = {
 
         stimStart = performance.now();
 
-        // 反应时间窗口结束
-        later(() => {
-          if (!running) return;
-          if (!responded) {
-            // 超时未按
-            errors++;
-            sfx.wrong();
-            updateHud();
-            showTrial(i + 1);
-          }
+        // 反应时间窗口结束 (超时判定)
+        trialTimer = setTimeout(() => {
+          if (!running || responded) return;
+          errors++;
+          sfx.wrong();
+          stimBox.style.display = "none";
+          updateHud();
+          stepTimer = setTimeout(() => showTrial(i + 1), 300);
         }, windowMs);
       }, 350);
     }
@@ -177,6 +175,12 @@ export const flanker = {
     function handleResponse(dir) {
       if (!running || responded || stimBox.style.display === "none") return;
       responded = true;
+      // 关键修复：立即销毁超时定时器，绝不让上一个试次的超时触发下一个试次！
+      if (trialTimer) {
+        clearTimeout(trialTimer);
+        trialTimer = null;
+      }
+
       const rt = performance.now() - stimStart;
       const cur = seq[idx];
 
@@ -194,10 +198,10 @@ export const flanker = {
       stimBox.style.display = "none";
       updateHud();
 
-      // 短暂反馈后进入下一轮 (250ms)
-      later(() => {
+      // 试次间保持 300ms 缓冲，确保节奏清晰稳定
+      stepTimer = setTimeout(() => {
         showTrial(idx + 1);
-      }, 250);
+      }, 300);
     }
 
     leftBtn.addEventListener("click", () => {
@@ -220,12 +224,12 @@ export const flanker = {
     };
     window.addEventListener("keydown", keyHandler);
 
-    later(() => showTrial(0), 400);
+    stepTimer = setTimeout(() => showTrial(0), 400);
 
     return {
       abort() {
         running = false;
-        clearTimeouts();
+        clearTimers();
         window.removeEventListener("keydown", keyHandler);
       }
     };

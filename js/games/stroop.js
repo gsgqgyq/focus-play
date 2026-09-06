@@ -89,13 +89,12 @@ export const stroop = {
     let running = true;
     let trialStart = 0;
 
-    const timeouts = [];
-    const later = (fn, ms) => {
-      const id = setTimeout(fn, ms);
-      timeouts.push(id);
-      return id;
-    };
-    const clearTimeouts = () => timeouts.forEach(clearTimeout);
+    let trialTimer = null;
+    let stepTimer = null;
+    function clearTimers() {
+      if (trialTimer) { clearTimeout(trialTimer); trialTimer = null; }
+      if (stepTimer) { clearTimeout(stepTimer); stepTimer = null; }
+    }
 
     function updateHud() {
       if (hitsEl) hitsEl.textContent = hits;
@@ -106,7 +105,7 @@ export const stroop = {
 
     function finish() {
       running = false;
-      clearTimeouts();
+      clearTimers();
       const avgRt = hits > 0 ? Math.round(totalRt / hits) : 999;
       const acc = Math.round((hits / trials) * 100);
       const pass = acc >= 72 && hits >= Math.round(trials * 0.7);
@@ -131,6 +130,7 @@ export const stroop = {
         finish();
         return;
       }
+      clearTimers();
       idx = i;
       responded = false;
       updateHud();
@@ -150,21 +150,25 @@ export const stroop = {
       wordEl.style.color = cur.inkItem.color;
       trialStart = performance.now();
 
-      later(() => {
-        if (!running) return;
-        if (!responded) {
-          // 超时
-          errors++;
-          sfx.wrong();
-          updateHud();
-          showTrial(i + 1);
-        }
+      trialTimer = setTimeout(() => {
+        if (!running || responded) return;
+        // 超时
+        errors++;
+        sfx.wrong();
+        updateHud();
+        stepTimer = setTimeout(() => showTrial(i + 1), 250);
       }, windowMs);
     }
 
     function handleChoice(ckey) {
       if (!running || responded) return;
       responded = true;
+      // 关键修复：立即取消当前试次的超时倒计时！
+      if (trialTimer) {
+        clearTimeout(trialTimer);
+        trialTimer = null;
+      }
+
       const rt = performance.now() - trialStart;
       const cur = seq[idx];
       const correctKey = cur.rule === "word" ? cur.textItem.key : cur.inkItem.key;
@@ -179,10 +183,10 @@ export const stroop = {
       }
 
       updateHud();
-      later(() => {
+      stepTimer = setTimeout(() => {
         if (!running) return;
         showTrial(idx + 1);
-      }, 200);
+      }, 250);
     }
 
     optButtons.forEach(btn => {
@@ -191,12 +195,12 @@ export const stroop = {
       });
     });
 
-    later(() => showTrial(0), 400);
+    stepTimer = setTimeout(() => showTrial(0), 400);
 
     return {
       abort() {
         running = false;
-        clearTimeouts();
+        clearTimers();
       }
     };
   }
