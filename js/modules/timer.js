@@ -30,17 +30,24 @@ function formatTime(s) {
 }
 
 export function updatePill() {
-  const pill = document.getElementById("focusPill");
-  const pillClock = document.getElementById("pillClock");
+  const pill = document.getElementById("dockFocusPill");
+  const pillClock = document.getElementById("dockPillClock");
+  const divider = document.getElementById("dockDivider");
+
   if (pillClock) pillClock.textContent = formatTime(secs);
 
-  // 关键修复：当用户正在“专注计时”页面时，隐藏顶栏药丸，彻底解决遮挡顶栏文字问题！
-  // 只有当计时在运行、且用户切到了其他页面（如大厅、呼吸、数据），才在顶栏操作区优雅展示
-  if (running && !paused && activeView !== "timer") {
-    if (pill) pill.style.display = "inline-flex";
+  // 当计时在运行且用户切到了其他页面（如大厅、呼吸、数据），在底栏控制中枢优雅展现实时倒计时
+  // 处于专注计时页本身时自动隐藏，避免与中央大表盘重复
+  if (running && activeView !== "timer") {
+    if (pill) {
+      pill.style.display = "inline-flex";
+      pill.classList.toggle("paused", paused);
+    }
+    if (divider) divider.style.display = "block";
     document.title = `${formatTime(secs)} · 专注乐园`;
   } else {
     if (pill) pill.style.display = "none";
+    if (divider) divider.style.display = "none";
     if (running && !paused) {
       document.title = `${formatTime(secs)} · 专注乐园`;
     } else {

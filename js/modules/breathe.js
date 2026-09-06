@@ -1,4 +1,4 @@
-/* breathe.js — 正念呼吸模块（箱式呼吸 4-4-4-4、4-7-8 深度舒缓呼吸与自律神经调节） */
+/* breathe.js — 正念呼吸模块（箱式呼吸 4-4-4-4、4-7-8 深度舒缓呼吸与自律神经调节，支持温润自然人声节律引导） */
 import { t } from "../i18n.js";
 import { store } from "../state.js";
 import { sfx } from "../audio.js";
@@ -36,6 +36,20 @@ const MODES = [
   }
 ];
 
+// 预加载自然高保真温润人声音频（避免 Web Speech API 的生硬与机械感）
+const BREATH_AUDIOS = {
+  zh: {
+    step_inhale: new Audio("audio/breathe/inhale_zh.mp3"),
+    step_hold:   new Audio("audio/breathe/hold_zh.mp3"),
+    step_exhale: new Audio("audio/breathe/exhale_zh.mp3")
+  },
+  en: {
+    step_inhale: new Audio("audio/breathe/inhale_en.mp3"),
+    step_hold:   new Audio("audio/breathe/hold_en.mp3"),
+    step_exhale: new Audio("audio/breathe/exhale_en.mp3")
+  }
+};
+
 let curMode = "box";
 let running = false;
 let stepIdx = 0;
@@ -43,14 +57,51 @@ let stepTimer = null;
 let countdownTimer = null;
 let cycles = 0;
 let remainingSec = 0;
+let voiceEnabled = store.getPref("breatheVoice", true);
+let currentAudio = null;
+
+function playBreathAudio(stepKey) {
+  if (!voiceEnabled) return;
+  stopBreathAudio();
+  const lang = store.getPref("lang", "zh") === "zh" ? "zh" : "en";
+  const audio = BREATH_AUDIOS[lang] && BREATH_AUDIOS[lang][stepKey];
+  if (audio) {
+    currentAudio = audio;
+    currentAudio.currentTime = 0;
+    currentAudio.volume = 0.95;
+    currentAudio.play().catch(e => {
+      console.warn("[FocusPlay] breath audio playback:", e);
+    });
+  }
+}
+
+function stopBreathAudio() {
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch (e) {}
+    currentAudio = null;
+  }
+}
 
 export function initBreathe() {
   renderModes();
   const startBtn = document.getElementById("breatheStartBtn");
   const stopBtn = document.getElementById("breatheStopBtn");
+  const voiceCheck = document.getElementById("breatheVoiceCheck");
 
   if (startBtn) startBtn.addEventListener("click", () => { sfx.click(); start(); });
   if (stopBtn)  stopBtn.addEventListener("click", () => { sfx.click(); stop(); });
+
+  if (voiceCheck) {
+    voiceCheck.checked = voiceEnabled;
+    voiceCheck.addEventListener("change", (e) => {
+      voiceEnabled = e.target.checked;
+      store.setPref("breatheVoice", voiceEnabled);
+      if (!voiceEnabled) stopBreathAudio();
+    });
+  }
 }
 
 function renderModes() {
@@ -108,6 +159,7 @@ function runStep() {
   }
 
   sfx.tap();
+  playBreathAudio(step.key);
 
   clearInterval(countdownTimer);
   countdownTimer = setInterval(() => {
@@ -135,6 +187,7 @@ function stop() {
   running = false;
   clearTimeout(stepTimer);
   clearInterval(countdownTimer);
+  stopBreathAudio();
 
   const orb = document.getElementById("orb");
   const orbText = document.getElementById("orbText");
@@ -163,4 +216,12 @@ function stop() {
 
 window.addEventListener("ff:lang", () => {
   renderModes();
+  const voiceCheckLabel = document.querySelector(".breathe-voice-opt span");
+  if (voiceCheckLabel) voiceCheckLabel.textContent = t("breathe_voice_opt");
+});
+
+window.addEventListener("ff:view", (e) => {
+  if (e.detail !== "breathe" && running) {
+    stop();
+  }
 });

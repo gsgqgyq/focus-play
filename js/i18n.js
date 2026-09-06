@@ -47,7 +47,7 @@ const DICT = {
     plan_afternoon_done: "注意网络与工作记忆已恢复平稳，有效压制午后走神与断片！",
 
     plan_bedtime_t: "睡前 · 神经降温与解压",
-    plan_bedtime_sub: "Go/No-Go 冲动急刹车 + 正念箱式呼吸，重置自律神经，抚平脑内思绪弹幕",
+    plan_bedtime_sub: "Go/No-Go 冲动急刹车 + 4-7-8 深度舒缓呼吸，重置自律神经，抚平脑内思绪弹幕",
     plan_bedtime_tag: "🌙 睡前平复 · 约 5 分钟",
     plan_bedtime_done: "交感神经已平复，思绪恢复沉着宁静，愿你拥有一整夜深层好眠。",
 
@@ -67,6 +67,8 @@ const DICT = {
     plan_step_gonogo_d: "激活右侧额下回运动制动回路，克制脱口而出与手滑",
     plan_step_breathe: "正念箱式呼吸 (4-4-4-4)",
     plan_step_breathe_d: "海豹突击队战术平定节律，重置心率与副交感神经",
+    plan_step_breathe478: "4-7-8 深度舒缓呼吸",
+    plan_step_breathe478_d: "经典深度放松节律，改善大脑过度亢奋，助眠安神",
 
     plan_start_btn: "▶ 立即开练",
     plan_running: "正在进行方案",
@@ -214,6 +216,7 @@ const DICT = {
     step_inhale: "慢慢吸气...",
     step_hold: "屏气停留...",
     step_exhale: "缓慢呼气...",
+    breathe_voice_opt: "🗣️ 呼吸人声节律提示 (吸气 / 屏气 / 呼气)",
 
     // 数据
     stats_title: "数据洞察 · 见证蜕变",
@@ -277,7 +280,7 @@ const DICT = {
     plan_afternoon_done: "Attention networks and working memory restored, mind-wandering suppressed!",
 
     plan_bedtime_t: "Bedtime · Neural Wind Down & Calm",
-    plan_bedtime_sub: "Impulse brake + Box breathing, reset autonomic tone and quiet racing thoughts",
+    plan_bedtime_sub: "Impulse brake + 4-7-8 Deep Relaxation breathing, reset autonomic tone and quiet racing thoughts",
     plan_bedtime_tag: "🌙 Bedtime · ~5 mins",
     plan_bedtime_done: "Autonomic nervous tone balanced, racing thoughts quieted. Have a restful sleep.",
 
@@ -297,6 +300,8 @@ const DICT = {
     plan_step_gonogo_d: "Activate motor inhibition circuits to tame restlessness",
     plan_step_breathe: "Box Breathing (4-4-4-4)",
     plan_step_breathe_d: "Navy SEAL tactical breathing to re-balance autonomic tone",
+    plan_step_breathe478: "4-7-8 Deep Relaxation Breathing",
+    plan_step_breathe478_d: "Parasympathetic activator to quiet racing thoughts and induce restful sleep",
 
     plan_start_btn: "▶ Start Training",
     plan_running: "Active Plan",
@@ -433,6 +438,7 @@ const DICT = {
     step_inhale: "Inhale gently...",
     step_hold: "Hold breath...",
     step_exhale: "Exhale smoothly...",
+    breathe_voice_opt: "🗣️ Calming Voice Prompts (Inhale / Hold / Exhale)",
 
     stats_title: "Insights & Growth",
     stats_sub: "All metrics and focus intervals synced to the cloud, tracking your neuroplastic progress.",

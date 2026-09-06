@@ -1408,6 +1408,12 @@ main {
   min-height: 1.6em;
 }
 
+.breathe-voice-opt {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+}
+
 /* ---------- 白噪音多源底栏 (Ambient Dock & Drawer) ---------- */
 .ambient-dock {
   position: fixed;
@@ -1430,6 +1436,48 @@ main {
   gap: 12px;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+
+.dock-timer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: var(--trans);
+}
+
+.dock-timer-pill:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.04);
+}
+
+.dock-timer-pill.paused {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.dock-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--card-border);
+  flex-shrink: 0;
+}
+
+.dock-live-time {
+  font-family: var(--font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .amb-play-btn {
@@ -2088,24 +2136,26 @@ main {
   box-shadow: var(--shadow-glow);
 }
 
-/* 正在运行的顶部方案导航浮条 */
+/* 正在运行的场景方案底栏浮条 (位于白噪音底栏正上方，彻底消除对顶部标题与说明的遮挡) */
 .plan-banner {
   position: fixed;
-  top: 72px;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
-  max-width: 620px;
+  max-width: 640px;
   width: calc(100% - 32px);
   background: var(--bg-card);
   border: 1.5px solid var(--accent);
-  box-shadow: var(--shadow-lg), 0 0 20px var(--accent-soft);
+  box-shadow: var(--shadow-lg), 0 -4px 20px var(--accent-soft);
   border-radius: var(--radius-pill);
   padding: 8px 16px 8px 18px;
   display: none;
   align-items: center;
   justify-content: space-between;
-  z-index: 80;
-  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 60;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .pb-left {
@@ -2324,6 +2374,20 @@ main {
   }
   .amb-slider {
     display: none;
+  }
+  .plan-banner {
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 12px;
+  }
+  .pb-title {
+    font-size: 0.8rem;
+  }
+  .pb-step {
+    font-size: 0.74rem;
+  }
+  .dock-timer-pill {
+    padding: 5px 9px;
+    font-size: 0.78rem;
   }
   .plans-grid {
     grid-template-columns: 1fr;

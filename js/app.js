@@ -266,9 +266,9 @@ export const TRAINING_PLANS = [
       },
       {
         type: "breathe",
-        mode: "box",
-        nameKey: "plan_step_breathe",
-        descKey: "plan_step_breathe_d"
+        mode: "478",
+        nameKey: "plan_step_breathe478",
+        descKey: "plan_step_breathe478_d"
       }
     ]
   }

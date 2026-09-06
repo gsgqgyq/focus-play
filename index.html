@@ -24,11 +24,6 @@
     <button class="nav-btn" data-nav="stats" data-i18n="nav_stats">数据洞察</button>
   </nav>
   <div class="topbar-actions">
-    <button id="focusPill" class="topbar-live-pill" style="display:none" data-nav="timer" title="点击回到专注计时">
-      <span class="live-pulse"></span>
-      <span class="live-icon">⏱️</span>
-      <span id="pillClock" class="live-time">25:00</span>
-    </button>
     <button id="voiceBtn" class="icon-btn" title="语音导引" aria-label="Voice">🗣️</button>
     <button id="themeBtn" class="icon-btn" title="深浅主题" aria-label="Theme">🌙</button>
     <button id="langBtn" class="pill-btn" title="中英切换">中 / EN</button>
@@ -173,6 +168,14 @@
         <button id="breatheStartBtn" class="btn primary big" data-i18n="breathe_start">开始呼吸</button>
         <button id="breatheStopBtn" class="btn big" data-i18n="breathe_stop" style="display:none">结束</button>
       </div>
+
+      <div class="breathe-voice-opt">
+        <label class="timer-sync-opt" title="呼吸各阶段自动播放温润自然人声提示">
+          <input type="checkbox" id="breatheVoiceCheck" checked>
+          <span data-i18n="breathe_voice_opt">🗣️ 呼吸人声节律提示 (吸气 / 屏气 / 呼气)</span>
+        </label>
+      </div>
+
       <p class="timer-note" id="breatheNote"></p>
     </div>
   </section>
@@ -198,6 +201,6 @@
 
 <!-- 部署同源同步配置与主程序入口 -->
 <script>window.FOCUSPLAY_CONFIG = { syncUrl: "/api/sync" };</script>
-<script type="module" src="js/app.js?v=12"></script>
+<script type="module" src="js/app.js?v=13"></script>
 </body>
 </html>

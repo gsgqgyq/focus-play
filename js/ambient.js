@@ -264,6 +264,13 @@ export const ambientPlayer = {
 
     dock.innerHTML = `
       <div class="amb-dock-bar">
+        <button id="dockFocusPill" class="dock-timer-pill" style="display:none" title="专注计时运行中，点击返回计时器">
+          <span class="live-pulse"></span>
+          <span class="live-icon">⏱️</span>
+          <span id="dockPillClock" class="dock-live-time">25:00</span>
+        </button>
+        <div id="dockDivider" class="dock-divider" style="display:none"></div>
+
         <button id="ambToggleBtn" class="amb-play-btn" title="播放/暂停白噪音">
           <span id="ambPlayIcon">▶</span>
         </button>
@@ -301,6 +308,15 @@ export const ambientPlayer = {
     `;
 
     // 绑定事件
+    const dockPill = document.getElementById("dockFocusPill");
+    if (dockPill) {
+      dockPill.addEventListener("click", () => {
+        sfx.click();
+        const timerNav = document.querySelector('.mainnav [data-nav="timer"]');
+        if (timerNav) timerNav.click();
+      });
+    }
+
     document.getElementById("ambToggleBtn").addEventListener("click", () => {
       sfx.click();
       this.togglePlay();
