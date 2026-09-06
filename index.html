@@ -57,6 +57,15 @@
       </div>
     </div>
 
+    <!-- 靶向训练方案板块 -->
+    <div class="plans-section">
+      <div class="plans-header">
+        <h2 data-i18n="plans_heading">🎯 循证靶向训练方案</h2>
+        <p class="plans-subheading" data-i18n="plans_subheading">针对 ADHD 最常见的四大认知卡点，科学配比复合微训练，按需自选即开即练：</p>
+      </div>
+      <div class="plans-grid" id="homePlansGrid"></div>
+    </div>
+
     <div class="card-grid" id="homeCards">
       <article class="card link-card" data-nav="games">
         <div class="card-icon">🧠</div>
@@ -96,8 +105,16 @@
 
   <!-- 游戏大厅 (GAMES LIST) -->
   <section id="view-games" class="view">
-    <header class="view-head">
-      <h1 data-i18n="card_games_t">循证认知训练</h1>
+    <div class="plans-section" style="margin-bottom:28px">
+      <div class="plans-header">
+        <h2 data-i18n="plans_heading">🎯 循证靶向训练方案</h2>
+        <p class="plans-subheading" data-i18n="plans_subheading">针对 ADHD 最常见的四大认知卡点，科学配比复合微训练，按需自选即开即练：</p>
+      </div>
+      <div class="plans-grid" id="gamesPlansGrid"></div>
+    </div>
+
+    <header class="view-head" style="margin-top:20px;border-top:1px dashed var(--card-border);padding-top:24px">
+      <h2 style="font-size:1.35rem;font-weight:700" data-i18n="card_games_t">循证认知训练</h2>
       <p data-i18n="hero_sub">选择一款训练，开启今天的神经元连接强化。</p>
     </header>
     <div class="card-grid" id="gamesGrid"></div>
@@ -223,6 +240,6 @@
 
 <!-- 部署同源同步配置与主程序入口 -->
 <script>window.FOCUSPLAY_CONFIG = { syncUrl: "/api/sync" };</script>
-<script type="module" src="js/app.js?v=10"></script>
+<script type="module" src="js/app.js?v=11"></script>
 </body>
 </html>

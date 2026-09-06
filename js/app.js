@@ -17,6 +17,7 @@ import { stroop } from "./games/stroop.js";
 
 import { initTimer } from "./modules/timer.js";
 import { initBreathe } from "./modules/breathe.js";
+import { renderPlans } from "./modules/plans.js";
 
 const GAMES = [flanker, sart, corsi, time_sense, nback, gonogo, schulte, stroop];
 
@@ -90,6 +91,7 @@ function renderHome() {
   $("todayMs").textContent = ms >= 3600000 ? `${(ms / 3600000).toFixed(1)}h` : `${Math.round(ms / 60000)}m`;
   $("streakNum").textContent = `${store.streak()}d`;
   $("totalSessions").textContent = store.focus.sessions;
+  renderPlans("homePlansGrid");
   renderSyncCard();
 }
 
@@ -185,6 +187,7 @@ function unlockedLvl(game, r) {
 }
 
 function renderGames() {
+  renderPlans("gamesPlansGrid");
   const grid = $("gamesGrid");
   if (!grid) return;
 
