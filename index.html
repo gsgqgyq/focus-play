@@ -24,6 +24,11 @@
     <button class="nav-btn" data-nav="stats" data-i18n="nav_stats">数据洞察</button>
   </nav>
   <div class="topbar-actions">
+    <button id="focusPill" class="topbar-live-pill" style="display:none" data-nav="timer" title="点击回到专注计时">
+      <span class="live-pulse"></span>
+      <span class="live-icon">⏱️</span>
+      <span id="pillClock" class="live-time">25:00</span>
+    </button>
     <button id="voiceBtn" class="icon-btn" title="语音导引" aria-label="Voice">🗣️</button>
     <button id="themeBtn" class="icon-btn" title="深浅主题" aria-label="Theme">🌙</button>
     <button id="langBtn" class="pill-btn" title="中英切换">中 / EN</button>
@@ -104,7 +109,9 @@
       <button class="icon-btn" data-nav="games" title="返回大厅">←</button>
       <h1 id="playTitle">训练准备</h1>
       <span class="lvl-badge" id="playLevelBadge">Level 1</span>
+      <button id="playHelpBtn" class="pill-btn play-help-btn" title="随时查看玩法规则与神经科学依据">📖 玩法说明</button>
     </div>
+    <div id="playHelpDrawer" class="play-help-drawer" style="display:none"></div>
     <div id="playLevels" class="level-strip"></div>
     <div id="playHost" class="play-host"></div>
     <div class="play-controls" id="playControls"></div>
@@ -112,6 +119,10 @@
 
   <!-- 专注计时器 (TIMER) -->
   <section id="view-timer" class="view">
+    <button id="timerZenExitBtn" class="zen-exit-btn" style="display:none" title="退出全屏 (Esc)">
+      <span>✕</span>
+      <span>退出 Zen 全屏</span>
+    </button>
     <div class="timer-view-wrap" id="timerZenWrap">
       <header class="view-head" style="margin-bottom:16px">
         <h1 data-i18n="timer_title">Time Timer 视觉专注</h1>
@@ -202,9 +213,6 @@
   </section>
 </main>
 
-<!-- 全局常驻专注药丸指示器 (悬浮在顶部) -->
-<div id="focusPill" class="focus-pill" style="display:none"></div>
-
 <!-- 全局多源白噪音控制器 (常驻底部 Dock) -->
 <div id="ambientDock" class="ambient-dock"></div>
 
@@ -213,12 +221,8 @@
   <div id="ytPlayerHost"></div>
 </div>
 
-<footer class="footer">
-  FocusPlay · 科学循证认知训练与专注支持系统
-</footer>
-
 <!-- 部署同源同步配置与主程序入口 -->
 <script>window.FOCUSPLAY_CONFIG = { syncUrl: "/api/sync" };</script>
-<script type="module" src="js/app.js?v=8"></script>
+<script type="module" src="js/app.js?v=10"></script>
 </body>
 </html>

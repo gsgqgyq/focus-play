@@ -18,6 +18,8 @@ let running = false;
 let paused = false;
 let timerIv = null;
 let autoAmbient = true;
+let activeView = "home";
+let isZen = false;
 
 const CIRCUMFERENCE = 2 * Math.PI * 130; // r = 130 in svg viewBox 300x300
 
@@ -25,6 +27,26 @@ function formatTime(s) {
   const m = Math.floor(s / 60);
   const sec = s % 60;
   return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
+export function updatePill() {
+  const pill = document.getElementById("focusPill");
+  const pillClock = document.getElementById("pillClock");
+  if (pillClock) pillClock.textContent = formatTime(secs);
+
+  // 关键修复：当用户正在“专注计时”页面时，隐藏顶栏药丸，彻底解决遮挡顶栏文字问题！
+  // 只有当计时在运行、且用户切到了其他页面（如大厅、呼吸、数据），才在顶栏操作区优雅展示
+  if (running && !paused && activeView !== "timer") {
+    if (pill) pill.style.display = "inline-flex";
+    document.title = `${formatTime(secs)} · 专注乐园`;
+  } else {
+    if (pill) pill.style.display = "none";
+    if (running && !paused) {
+      document.title = `${formatTime(secs)} · 专注乐园`;
+    } else {
+      document.title = "专注乐园 · FocusPlay";
+    }
+  }
 }
 
 function updateDial() {
@@ -40,18 +62,7 @@ function updateDial() {
     circle.style.strokeDashoffset = offset;
   }
 
-  // 顶层药丸状态通知
-  const pill = document.getElementById("focusPill");
-  if (pill) {
-    if (running && !paused) {
-      pill.style.display = "flex";
-      pill.innerHTML = `<span>⏱️ <b>${formatTime(secs)}</b></span>`;
-      document.title = `${formatTime(secs)} · 专注乐园`;
-    } else {
-      pill.style.display = "none";
-      document.title = "专注乐园 · FocusPlay";
-    }
-  }
+  updatePill();
 }
 
 function start() {
@@ -176,6 +187,45 @@ function triggerConfetti() {
   }
 }
 
+export function exitZenMode(exitBrowserFs = true) {
+  isZen = false;
+  const wrap = document.getElementById("view-timer");
+  if (wrap) wrap.classList.remove("zen-mode");
+  const exitBtn = document.getElementById("timerZenExitBtn");
+  if (exitBtn) exitBtn.style.display = "none";
+
+  if (exitBrowserFs) {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      try {
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      } catch (e) {}
+    }
+  }
+}
+
+export function enterZenMode() {
+  isZen = true;
+  const wrap = document.getElementById("view-timer");
+  if (wrap) wrap.classList.add("zen-mode");
+  const exitBtn = document.getElementById("timerZenExitBtn");
+  if (exitBtn) exitBtn.style.display = "inline-flex";
+
+  try {
+    if (document.fullscreenEnabled && !document.fullscreenElement) {
+      wrap.requestFullscreen().catch(() => {});
+    }
+  } catch (e) {}
+}
+
+export function toggleZenMode() {
+  if (isZen) {
+    exitZenMode();
+  } else {
+    enterZenMode();
+  }
+}
+
 export function initTimer() {
   const circle = document.getElementById("timerProgressCircle");
   if (circle) {
@@ -197,24 +247,47 @@ export function initTimer() {
   if (pauseBtn) pauseBtn.addEventListener("click", () => { sfx.click(); paused ? resume() : pause(); });
   if (resetBtn) resetBtn.addEventListener("click", () => { sfx.click(); reset(); });
 
+  const exitZenBtn = document.getElementById("timerZenExitBtn");
+
+  if (exitZenBtn) {
+    exitZenBtn.addEventListener("click", () => {
+      sfx.click();
+      exitZenMode();
+    });
+  }
+
   if (zenBtn) {
     zenBtn.addEventListener("click", () => {
       sfx.click();
-      const wrap = document.getElementById("view-timer");
-      wrap.classList.toggle("zen-mode");
-      if (wrap.classList.contains("zen-mode")) {
-        try {
-          if (document.fullscreenEnabled && !document.fullscreenElement) {
-            wrap.requestFullscreen().catch(() => {});
-          }
-        } catch (e) {}
-      } else {
-        if (document.fullscreenElement) {
-          document.exitFullscreen().catch(() => {});
-        }
-      }
+      toggleZenMode();
     });
   }
+
+  // 监听原生浏览器全屏退出 (例如用户按 Esc 键直接退出)
+  const onFsChange = () => {
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (!isFs && isZen) {
+      exitZenMode(false); // 不用重复调用 exitFullscreen
+    }
+  };
+  document.addEventListener("fullscreenchange", onFsChange);
+  document.addEventListener("webkitfullscreenchange", onFsChange);
+
+  // 监听按键 Esc 兜底退出
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Escape" && isZen) {
+      exitZenMode();
+    }
+  });
+
+  // 监听视图切换事件：切离专注计时器时自动退出全屏，并刷新药丸可见性
+  window.addEventListener("ff:view", (e) => {
+    activeView = e.detail;
+    updatePill();
+    if (activeView !== "timer") {
+      exitZenMode();
+    }
+  });
 
   if (customSetBtn && customInput) {
     customSetBtn.addEventListener("click", () => {

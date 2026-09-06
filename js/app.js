@@ -58,6 +58,7 @@ export function navigateTo(view) {
   if (view === "stats") renderStats();
   if (view === "play") paintLevelStrip();
 
+  window.dispatchEvent(new CustomEvent("ff:view", { detail: view }));
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -202,6 +203,13 @@ function renderGames() {
         </div>
         <h2>${t(g.nameKey)}</h2>
         <p>${t(g.descKey)}</p>
+
+        <!-- 显眼的游戏玩法与操作规则模块 -->
+        <div class="game-card-how">
+          <span class="how-tag">🎮 玩法操作</span>
+          <div class="how-text">${t(g.howKey)}</div>
+        </div>
+
         <div class="game-card-sci">
           <small>🔬 ${t(g.scienceKey || g.descKey)}</small>
         </div>
@@ -232,7 +240,44 @@ export function openPlay(game, level) {
   $("playTitle").textContent = t(game.nameKey);
   currentLevel = Math.min(level, game.max);
   paintLevelStrip();
+  setupHelpDrawer(game);
   startLevel(game, currentLevel);
+}
+
+function setupHelpDrawer(game) {
+  const drawer = $("playHelpDrawer");
+  const helpBtn = $("playHelpBtn");
+  if (!drawer || !helpBtn) return;
+
+  drawer.style.display = "none";
+  drawer.innerHTML = `
+    <div class="play-help-content">
+      <div class="ph-head">
+        <h4>${game.icon} ${t(game.nameKey)} · 随时查看玩法说明</h4>
+        <button id="playHelpClose" class="icon-btn" style="padding:4px 10px">✕</button>
+      </div>
+      <div class="ph-body">
+        <div class="ph-section">
+          <b>🎮 核心操作规则：</b>
+          <p>${t(game.howKey)}</p>
+        </div>
+        <div class="ph-section" style="margin-top:10px">
+          <b>🧠 为什么对 ADHD 大脑有效？</b>
+          <p>${t(game.scienceKey || game.descKey)}</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("playHelpClose").onclick = () => {
+    sfx.click();
+    drawer.style.display = "none";
+  };
+
+  helpBtn.onclick = () => {
+    sfx.click();
+    drawer.style.display = drawer.style.display === "none" ? "block" : "none";
+  };
 }
 
 function paintLevelStrip() {
