@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0f18">
+  <meta name="description" content="基于认知心理学与神经科学实证的 ADHD 专注力训练乐园，包含抗干扰、工作记忆、持续警觉与时间感知校准。">
+  <title>专注乐园 · FocusPlay</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 顶部导航栏 -->
+<header class="topbar">
+  <button class="brand" data-nav="home">
+    <span class="brand-mark">🎯</span>
+    <span class="brand-name">FocusPlay</span>
+  </button>
+  <nav id="mainnav" class="mainnav">
+    <button class="nav-btn" data-nav="games" data-i18n="nav_games">科学训练</button>
+    <button class="nav-btn" data-nav="timer" data-i18n="nav_timer">专注计时</button>
+    <button class="nav-btn" data-nav="breathe" data-i18n="nav_breathe">正念呼吸</button>
+    <button class="nav-btn" data-nav="stats" data-i18n="nav_stats">数据洞察</button>
+  </nav>
+  <div class="topbar-actions">
+    <button id="voiceBtn" class="icon-btn" title="语音导引" aria-label="Voice">🗣️</button>
+    <button id="themeBtn" class="icon-btn" title="深浅主题" aria-label="Theme">🌙</button>
+    <button id="langBtn" class="pill-btn" title="中英切换">中 / EN</button>
+  </div>
+</header>
+
+<main>
+  <!-- 首页视图 (HOME) -->
+  <section id="view-home" class="view active">
+    <div class="hero">
+      <h1 data-i18n="hero_title">重塑多巴胺回路 · 把专注练成习惯</h1>
+      <p class="hero-sub" data-i18n="hero_sub">基于认知神经科学与 ADHD 临床实证范式。每天 5 分钟微步练习，从抗干扰到时间感知，渐进重塑大脑执行功能。</p>
+      <div class="today-row">
+        <div class="stat-chip">
+          <span class="stat-num" id="todayMs">0m</span>
+          <span class="stat-label" data-i18n="today_focus">今日专注</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-num" id="streakNum">0d</span>
+          <span class="stat-label" data-i18n="streak">连续坚持</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-num" id="totalSessions">0</span>
+          <span class="stat-label" data-i18n="sessions">总训练次数</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid" id="homeCards">
+      <article class="card link-card" data-nav="games">
+        <div class="card-icon">🧠</div>
+        <h2 data-i18n="card_games_t">循证认知训练</h2>
+        <p data-i18n="card_games_d">8 款经神经心理学验证的专注小游戏，覆盖抗干扰、警觉维持、视空间记忆与时间感知。</p>
+        <div class="card-tags">
+          <span>Flanker 抗干扰</span>
+          <span>SART 警觉</span>
+          <span>Corsi 记忆</span>
+          <span>时间校准</span>
+          <span>Dual N-back</span>
+          <span>急刹车</span>
+        </div>
+      </article>
+
+      <article class="card link-card" data-nav="timer">
+        <div class="card-icon">⏱️</div>
+        <h2 data-i18n="card_timer_t">Time Timer 视觉计时</h2>
+        <p data-i18n="card_timer_d">动态圆盘倒计时直观展示时间流逝，搭配 5 分钟启动微步与沉浸白噪音，终结任务瘫痪。</p>
+      </article>
+
+      <article class="card link-card" data-nav="breathe">
+        <div class="card-icon">🌿</div>
+        <h2 data-i18n="card_breathe_t">正念 · 自律神经调节</h2>
+        <p data-i18n="card_breathe_d">箱式呼吸与 4-7-8 节律，平复前额叶过载，重获宁静专注。</p>
+      </article>
+
+      <article class="card link-card" data-nav="stats">
+        <div class="card-icon">📊</div>
+        <h2 data-i18n="card_stats_t">我的数据</h2>
+        <p data-i18n="card_stats_d">反应时、抗干扰损耗比、时间校准度全量记录，见证前额叶肌肉成长。</p>
+      </article>
+    </div>
+
+    <div class="sync-card" id="syncCard"></div>
+  </section>
+
+  <!-- 游戏大厅 (GAMES LIST) -->
+  <section id="view-games" class="view">
+    <header class="view-head">
+      <h1 data-i18n="card_games_t">循证认知训练</h1>
+      <p data-i18n="hero_sub">选择一款训练，开启今天的神经元连接强化。</p>
+    </header>
+    <div class="card-grid" id="gamesGrid"></div>
+  </section>
+
+  <!-- 游戏运行界面 (GAME PLAY) -->
+  <section id="view-play" class="view">
+    <div class="play-head">
+      <button class="icon-btn" data-nav="games" title="返回大厅">←</button>
+      <h1 id="playTitle">训练准备</h1>
+      <span class="lvl-badge" id="playLevelBadge">Level 1</span>
+    </div>
+    <div id="playLevels" class="level-strip"></div>
+    <div id="playHost" class="play-host"></div>
+    <div class="play-controls" id="playControls"></div>
+  </section>
+
+  <!-- 专注计时器 (TIMER) -->
+  <section id="view-timer" class="view">
+    <div class="timer-view-wrap" id="timerZenWrap">
+      <header class="view-head" style="margin-bottom:16px">
+        <h1 data-i18n="timer_title">Time Timer 视觉专注</h1>
+        <p data-i18n="timer_sub">用肉眼可见的时间缩减圆盘消除抽象时间焦虑，从 5 分钟微步轻松开启。</p>
+      </header>
+
+      <!-- 预设梯度按钮 -->
+      <div class="timer-preset-list" id="timerPresetList"></div>
+
+      <!-- 视觉动态圆盘 -->
+      <div class="timer-dial-box">
+        <svg class="timer-svg" viewBox="0 0 300 300">
+          <defs>
+            <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#6c5ce7" />
+              <stop offset="100%" stop-color="#00cec9" />
+            </linearGradient>
+          </defs>
+          <circle class="timer-bg-circle" cx="150" cy="150" r="130" />
+          <circle class="timer-progress-circle" id="timerProgressCircle" cx="150" cy="150" r="130" />
+        </svg>
+        <div class="timer-center-text">
+          <div class="timer-clock-num" id="timerClockText">25:00</div>
+          <div class="timer-clock-sub" id="timerClockSub">剩余时间</div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="timer-actions">
+        <button id="timerStartBtn" class="btn primary big" data-i18n="timer_start">开始专注</button>
+        <button id="timerPauseBtn" class="btn big" data-i18n="timer_pause" style="display:none">暂停</button>
+        <button id="timerResetBtn" class="btn big" data-i18n="timer_reset" style="display:none">重置</button>
+      </div>
+
+      <!-- 自定义与偏好栏 -->
+      <div class="timer-options-bar">
+        <label class="timer-sync-opt">
+          <input type="checkbox" id="timerAmbientSync" checked>
+          <span>专注时联动白噪音</span>
+        </label>
+        <div class="timer-custom-row">
+          <span>自定义:</span>
+          <input type="number" id="timerCustomMin" min="1" max="180" placeholder="分钟" class="timer-mini-input">
+          <button class="pill-btn" id="timerCustomSet">设定</button>
+        </div>
+        <button class="pill-btn" id="timerZenToggle" title="切换全屏沉浸模式">全屏 Zen</button>
+      </div>
+
+      <p class="timer-note" id="timerNote"></p>
+    </div>
+  </section>
+
+  <!-- 正念呼吸 (BREATHE) -->
+  <section id="view-breathe" class="view">
+    <div class="breathe-body">
+      <header class="view-head" style="margin-bottom:16px">
+        <h1 data-i18n="breathe_title">正念呼吸 · 神经重启</h1>
+        <p data-i18n="breathe_sub">跟随呼吸光环收缩与扩展，激活副交感神经，抚平前额叶过载。</p>
+      </header>
+
+      <div class="breathe-modes" id="breatheModes"></div>
+
+      <div class="orb-wrap">
+        <div class="orb" id="orb">
+          <span id="orbText">4</span>
+        </div>
+        <div class="orb-halo"></div>
+      </div>
+
+      <div class="breathe-step" id="breatheStep">吸气...</div>
+
+      <div class="timer-actions" style="margin-top:20px">
+        <button id="breatheStartBtn" class="btn primary big" data-i18n="breathe_start">开始呼吸</button>
+        <button id="breatheStopBtn" class="btn big" data-i18n="breathe_stop" style="display:none">结束</button>
+      </div>
+      <p class="timer-note" id="breatheNote"></p>
+    </div>
+  </section>
+
+  <!-- 数据统计 (STATS) -->
+  <section id="view-stats" class="view">
+    <header class="view-head">
+      <h1 data-i18n="stats_title">数据洞察 · 见证蜕变</h1>
+      <p data-i18n="stats_sub">训练时长与成绩已实现跨端云同步，见证多巴胺自控力成长。</p>
+    </header>
+    <div class="stats-total" id="statsTotal"></div>
+    <div class="stats-breakdown" id="statsBreakdown"></div>
+  </section>
+</main>
+
+<!-- 全局常驻专注药丸指示器 (悬浮在顶部) -->
+<div id="focusPill" class="focus-pill" style="display:none"></div>
+
+<!-- 全局多源白噪音控制器 (常驻底部 Dock) -->
+<div id="ambientDock" class="ambient-dock"></div>
+
+<!-- 隐藏的 YouTube 播放容器 (尺寸设为 1x1，免干扰视觉) -->
+<div id="ytPlayerContainer" style="position:fixed;bottom:-100px;right:-100px;width:1px;height:1px;overflow:hidden;pointer-events:none">
+  <div id="ytPlayerHost"></div>
+</div>
+
+<footer class="footer">
+  FocusPlay · 科学循证认知训练与专注支持系统
+</footer>
+
+<!-- 部署同源同步配置与主程序入口 -->
+<script>window.FOCUSPLAY_CONFIG = { syncUrl: "/api/sync" };</script>
+<script type="module" src="js/app.js?v=8"></script>
+</body>
+</html>
