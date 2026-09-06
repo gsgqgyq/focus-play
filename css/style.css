@@ -76,7 +76,7 @@ body {
   background-repeat: no-repeat;
   color: var(--text);
   min-height: 100vh;
-  padding-bottom: 96px; /* 为底部白噪音浮动栏留出空间 */
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); /* 为底部白噪音浮动栏留出空间并适配 iPhone 安全区 */
   line-height: 1.6;
   transition: background-color var(--trans), color var(--trans);
 }
@@ -87,6 +87,9 @@ button {
   border: none;
   background: none;
   color: inherit;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* ---------- 顶栏 (Top Bar) ---------- */
@@ -96,7 +99,7 @@ button {
   gap: 14px;
   max-width: 1040px;
   margin: 0 auto;
-  padding: 14px 16px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
   position: sticky;
   top: 0;
   z-index: 30;
@@ -2206,32 +2209,131 @@ main {
 }
 
 /* ---------- 响应式断点 (Media Queries) ---------- */
+
+/* 平板端优化 (iPad / iPad Air / iPad mini 641px ~ 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .topbar {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .mainnav {
+    gap: 8px;
+  }
+  .nav-btn {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+  }
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .corsi-arena {
+    width: min(70vw, 440px);
+  }
+  .schulte-table {
+    max-width: 440px;
+  }
+}
+
+/* 手机端优化 (Mobile Phones <= 640px) */
 @media (max-width: 640px) {
   .topbar {
     flex-wrap: wrap;
     gap: 10px;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 8px;
   }
   .mainnav {
     order: 3;
     width: 100%;
     justify-content: center;
+    gap: 5px;
+  }
+  .nav-btn {
+    padding: 6px 11px;
+    font-size: 0.84rem;
   }
   .brand-name {
     display: none;
   }
+  .today-row {
+    gap: 8px;
+  }
   .today-row .stat-chip {
-    min-width: 30%;
-    padding: 12px 14px;
+    min-width: 28%;
+    padding: 10px 12px;
+    flex: 1;
   }
   .stat-num {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
+  }
+  .stat-label {
+    font-size: 0.75rem;
   }
   .ambient-dock {
-    width: calc(100% - 20px);
-    bottom: 10px;
+    width: calc(100% - 24px);
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
   .amb-slider {
     display: none;
+  }
+  .plans-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .plan-card {
+    padding: 16px;
+  }
+  .play-head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .play-head h1 {
+    font-size: 1.15rem;
+  }
+  .hud span {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  .hud b {
+    font-size: 1rem;
+  }
+  .flanker-actions {
+    gap: 10px;
+  }
+  .flanker-btn {
+    padding: 12px 8px;
+  }
+  .timer-preset-list {
+    gap: 6px;
+  }
+  .timer-preset-chip {
+    padding: 6px 12px;
+    font-size: 0.84rem;
+  }
+}
+
+/* 超窄屏手机微调 (iPhone SE / 小型设备 <= 380px) */
+@media (max-width: 380px) {
+  .nav-btn {
+    padding: 5px 8px;
+    font-size: 0.76rem;
+  }
+  .today-row .stat-chip {
+    padding: 8px 6px;
+  }
+  .stat-num {
+    font-size: 1.25rem;
+  }
+  .stat-label {
+    font-size: 0.7rem;
+  }
+  .timer-preset-chip {
+    padding: 5px 8px;
+    font-size: 0.78rem;
   }
 }
 
