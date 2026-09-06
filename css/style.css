@@ -1941,12 +1941,57 @@ main {
   transition: var(--trans);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .plan-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--card-border-hover);
   box-shadow: var(--shadow-md);
+}
+
+.plan-sunrise .plan-tag {
+  background: rgba(255, 159, 67, 0.15);
+  color: #ff9f43;
+}
+.plan-sunrise:hover {
+  border-color: rgba(255, 159, 67, 0.45);
+}
+.plan-sunrise .plan-start-btn {
+  background: linear-gradient(135deg, #ff9f43, #ee5253);
+}
+
+.plan-work .plan-tag {
+  background: rgba(9, 132, 227, 0.15);
+  color: #0984e3;
+}
+.plan-work:hover {
+  border-color: rgba(9, 132, 227, 0.45);
+}
+.plan-work .plan-start-btn {
+  background: linear-gradient(135deg, #0984e3, #6c5ce7);
+}
+
+.plan-afternoon .plan-tag {
+  background: rgba(0, 184, 148, 0.15);
+  color: #00b894;
+}
+.plan-afternoon:hover {
+  border-color: rgba(0, 184, 148, 0.45);
+}
+.plan-afternoon .plan-start-btn {
+  background: linear-gradient(135deg, #00b894, #00cec9);
+}
+
+.plan-evening .plan-tag {
+  background: rgba(108, 92, 231, 0.15);
+  color: var(--accent);
+}
+.plan-evening:hover {
+  border-color: rgba(108, 92, 231, 0.45);
+}
+.plan-evening .plan-start-btn {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
 }
 
 .plan-card-top {

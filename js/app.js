@@ -17,7 +17,6 @@ import { stroop } from "./games/stroop.js";
 
 import { initTimer } from "./modules/timer.js";
 import { initBreathe } from "./modules/breathe.js";
-import { renderPlans } from "./modules/plans.js";
 
 const GAMES = [flanker, sart, corsi, time_sense, nback, gonogo, schulte, stroop];
 
@@ -91,7 +90,7 @@ function renderHome() {
   $("todayMs").textContent = ms >= 3600000 ? `${(ms / 3600000).toFixed(1)}h` : `${Math.round(ms / 60000)}m`;
   $("streakNum").textContent = `${store.streak()}d`;
   $("totalSessions").textContent = store.focus.sessions;
-  renderPlans("homePlansGrid");
+  renderHomePlans();
   renderSyncCard();
 }
 
@@ -121,34 +120,34 @@ function renderSyncCard() {
         <h3>🔄 ${t("sync_title")}</h3>
         <span class="sync-status-tag ${currentCode ? 'active' : ''}">${currentCode ? '已连接云端' : '单机离线'}</span>
       </div>
-      <p>${t("sync_desc")}</p>
-      <div class="sync-row">
-        <input class="hint-input" id="syncInput" placeholder="${t("sync_placeholder")}" value="${currentCode}">
-        <button class="btn primary" id="syncSave">${t("sync_save")}</button>
-        ${currentCode ? `<button class="btn" id="syncLink">🔗 ${t("sync_link")}</button>` : ""}
+      <p class="sync-box-desc">${t("sync_desc")}</p>
+      <div class="sync-input-row">
+        <input type="text" id="syncInput" placeholder="${t("sync_placeholder")}" value="${currentCode}" />
+        <button class="btn primary" id="syncSaveBtn">${t("sync_save")}</button>
+        <button class="btn" id="syncLink">${t("sync_link")}</button>
       </div>
-      <div class="sync-status ${configured ? '' : 'nd'}" id="syncStatus">
-        ${configured ? (currentCode ? '✓ 云端同步服务就绪' : '— 暂未绑定') : t("sync_nd")}
-      </div>
+      <div id="syncStatus" class="sync-status-msg"></div>
     </div>
   `;
 
-  $("syncSave").addEventListener("click", async () => {
-    sfx.click();
-    const code = $("syncInput").value.trim();
-    const r = await setSyncCode(code);
-    const st = $("syncStatus");
-    if (!r.configured) {
-      st.className = "sync-status nd";
-      st.textContent = t("sync_nd");
-      toast(t("sync_nd"));
-    } else if (code && r.ok) {
-      st.className = "sync-status ok";
+  const btn = $("syncSaveBtn");
+  const input = $("syncInput");
+  const st = $("syncStatus");
+
+  btn.addEventListener("click", async () => {
+    const code = (input.value || "").trim();
+    if (!code || code.length < 6) {
+      st.textContent = t("sync_placeholder");
+      return;
+    }
+    setSyncCode(code);
+    st.textContent = "正在同步云端数据...";
+    const ok = await store.sync();
+    if (ok) {
       st.textContent = t("sync_ok");
       toast(t("sync_ok"));
       renderHome();
     } else {
-      st.className = "sync-status err";
       st.textContent = t("sync_err");
       toast(t("sync_err"));
     }
@@ -173,6 +172,319 @@ function renderSyncCard() {
   }
 }
 
+/* ---------- 每日按需场景训练方案 (早起 / 上午 / 下午 / 睡前) ---------- */
+export const TRAINING_PLANS = [
+  {
+    id: "morning_wake",
+    icon: "🌅",
+    themeClass: "plan-sunrise",
+    titleKey: "plan_morning_t",
+    subKey: "plan_morning_sub",
+    tagKey: "plan_morning_tag",
+    doneKey: "plan_morning_done",
+    steps: [
+      {
+        type: "game",
+        gameId: "time_sense",
+        level: 1,
+        nameKey: "plan_step_time_sense",
+        descKey: "plan_step_time_sense_d"
+      },
+      {
+        type: "game",
+        gameId: "schulte",
+        level: 1,
+        nameKey: "plan_step_schulte",
+        descKey: "plan_step_schulte_d"
+      }
+    ]
+  },
+  {
+    id: "morning_work",
+    icon: "💼",
+    themeClass: "plan-work",
+    titleKey: "plan_work_t",
+    subKey: "plan_work_sub",
+    tagKey: "plan_work_tag",
+    doneKey: "plan_work_done",
+    steps: [
+      {
+        type: "game",
+        gameId: "flanker",
+        level: 1,
+        nameKey: "plan_step_flanker",
+        descKey: "plan_step_flanker_d"
+      },
+      {
+        type: "timer",
+        minutes: 5,
+        nameKey: "plan_step_timer5",
+        descKey: "plan_step_timer5_d"
+      }
+    ]
+  },
+  {
+    id: "afternoon_refocus",
+    icon: "🔋",
+    themeClass: "plan-afternoon",
+    titleKey: "plan_afternoon_t",
+    subKey: "plan_afternoon_sub",
+    tagKey: "plan_afternoon_tag",
+    doneKey: "plan_afternoon_done",
+    steps: [
+      {
+        type: "game",
+        gameId: "sart",
+        level: 1,
+        nameKey: "plan_step_sart",
+        descKey: "plan_step_sart_d"
+      },
+      {
+        type: "game",
+        gameId: "corsi",
+        level: 1,
+        nameKey: "plan_step_corsi",
+        descKey: "plan_step_corsi_d"
+      }
+    ]
+  },
+  {
+    id: "evening_calm",
+    icon: "🌙",
+    themeClass: "plan-evening",
+    titleKey: "plan_bedtime_t",
+    subKey: "plan_bedtime_sub",
+    tagKey: "plan_bedtime_tag",
+    doneKey: "plan_bedtime_done",
+    steps: [
+      {
+        type: "game",
+        gameId: "gonogo",
+        level: 1,
+        nameKey: "plan_step_gonogo",
+        descKey: "plan_step_gonogo_d"
+      },
+      {
+        type: "breathe",
+        mode: "box",
+        nameKey: "plan_step_breathe",
+        descKey: "plan_step_breathe_d"
+      }
+    ]
+  }
+];
+
+let activePlanState = null;
+
+function renderHomePlans() {
+  const container = $("homePlansGrid");
+  if (!container) return;
+
+  container.innerHTML = TRAINING_PLANS.map(plan => `
+    <article class="card plan-card ${plan.themeClass}" data-plan-card="${plan.id}">
+      <div class="plan-card-top">
+        <span class="plan-tag">${t(plan.tagKey)}</span>
+        <span class="plan-icon">${plan.icon}</span>
+      </div>
+      <h3 class="plan-title">${t(plan.titleKey)}</h3>
+      <p class="plan-sub">${t(plan.subKey)}</p>
+      <div class="plan-steps-preview">
+        ${plan.steps.map((s, i) => `
+          <div class="plan-step-item">
+            <span class="step-num">${i + 1}</span>
+            <span class="step-label">${t(s.nameKey)}</span>
+          </div>
+        `).join("")}
+      </div>
+      <button class="btn primary plan-start-btn" data-start-plan="${plan.id}">
+        ${t("plan_start_btn")}
+      </button>
+    </article>
+  `).join("");
+
+  container.querySelectorAll("[data-plan-card]").forEach(card => {
+    card.addEventListener("click", () => {
+      sfx.click();
+      startPlan(card.dataset.planCard);
+    });
+  });
+}
+
+export function startPlan(planId) {
+  const plan = TRAINING_PLANS.find(p => p.id === planId);
+  if (!plan) return;
+
+  activePlanState = {
+    plan,
+    stepIndex: 0,
+    startTime: Date.now()
+  };
+
+  showPlanBanner();
+  runCurrentStep();
+}
+
+function runCurrentStep() {
+  if (!activePlanState) return;
+  const { plan, stepIndex } = activePlanState;
+  const step = plan.steps[stepIndex];
+  updatePlanBanner();
+
+  if (step.type === "game") {
+    const game = GAMES.find(g => g.id === step.gameId);
+    if (game) {
+      openPlay(game, step.level || 1);
+    }
+  } else if (step.type === "timer") {
+    navigateTo("timer");
+    const chip = document.querySelector(`.timer-preset-chip[data-m="${step.minutes}"]`);
+    if (chip) chip.click();
+    setTimeout(() => {
+      const startBtn = $("timerStartBtn");
+      if (startBtn && startBtn.style.display !== "none") {
+        startBtn.focus();
+      }
+    }, 400);
+  } else if (step.type === "breathe") {
+    navigateTo("breathe");
+    const modeBtn = document.querySelector(`.mode-btn[data-mid="${step.mode}"]`);
+    if (modeBtn) modeBtn.click();
+  }
+}
+
+// 监听游戏或呼吸完成事件
+window.addEventListener("ff:record", (e) => {
+  if (!activePlanState) return;
+  const { plan, stepIndex } = activePlanState;
+  const step = plan.steps[stepIndex];
+
+  if (step.type === "game" && step.gameId === e.detail.gameId) {
+    onStepComplete();
+  } else if (step.type === "breathe" && e.detail.gameId === "breathe") {
+    onStepComplete();
+  }
+});
+
+// 监听计时器完成事件
+window.addEventListener("ff:focus", () => {
+  if (!activePlanState) return;
+  const { plan, stepIndex } = activePlanState;
+  const step = plan.steps[stepIndex];
+  if (step.type === "timer") {
+    onStepComplete();
+  }
+});
+
+function onStepComplete() {
+  if (!activePlanState) return;
+  const { plan, stepIndex } = activePlanState;
+  sfx.levelup();
+
+  const isLastStep = stepIndex >= plan.steps.length - 1;
+
+  let modal = $("planStepModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "planStepModal";
+    modal.className = "plan-step-modal";
+    document.body.appendChild(modal);
+  }
+
+  if (isLastStep) {
+    modal.innerHTML = `
+      <div class="card psm-card">
+        <div class="psm-icon">🎉</div>
+        <h3>【${t(plan.titleKey)}】${t("plan_done_title")}</h3>
+        <p>${t(plan.doneKey)}</p>
+        <div class="psm-actions">
+          <button class="btn primary big" id="psmFinishBtn">${t("plan_back_home")}</button>
+        </div>
+      </div>
+    `;
+    modal.classList.add("show");
+    $("psmFinishBtn").onclick = () => {
+      sfx.click();
+      modal.classList.remove("show");
+      closePlanBanner();
+      navigateTo("home");
+    };
+  } else {
+    const currentStep = plan.steps[stepIndex];
+    const nextStep = plan.steps[stepIndex + 1];
+    modal.innerHTML = `
+      <div class="card psm-card">
+        <div class="psm-icon">✨</div>
+        <h3>${t("plan_step_passed", { i: stepIndex + 1, total: plan.steps.length })}</h3>
+        <p class="psm-sub">${t("plan_completed_step")}<b>${t(currentStep.nameKey)}</b></p>
+        <div class="psm-next-box">
+          <b>${t("plan_next_up")}</b>
+          <span>${t(nextStep.nameKey)}</span>
+          <small>${t(nextStep.descKey)}</small>
+        </div>
+        <div class="psm-actions">
+          <button class="btn primary big" id="psmNextBtn">${t("plan_next_btn")}</button>
+          <button class="btn" id="psmPauseBtn">${t("plan_pause_btn")}</button>
+        </div>
+      </div>
+    `;
+    modal.classList.add("show");
+    $("psmNextBtn").onclick = () => {
+      sfx.click();
+      modal.classList.remove("show");
+      activePlanState.stepIndex++;
+      runCurrentStep();
+    };
+    $("psmPauseBtn").onclick = () => {
+      sfx.click();
+      modal.classList.remove("show");
+      closePlanBanner();
+    };
+  }
+}
+
+function showPlanBanner() {
+  let banner = $("planBanner");
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "planBanner";
+    banner.className = "plan-banner";
+    document.body.appendChild(banner);
+  }
+  banner.style.display = "flex";
+  updatePlanBanner();
+}
+
+function updatePlanBanner() {
+  const banner = $("planBanner");
+  if (!banner || !activePlanState) return;
+  const { plan, stepIndex } = activePlanState;
+  const step = plan.steps[stepIndex];
+
+  banner.innerHTML = `
+    <div class="pb-left">
+      <span class="pb-icon">${plan.icon}</span>
+      <div class="pb-info">
+        <span class="pb-title">${t("plan_running")}：${t(plan.titleKey)}</span>
+        <span class="pb-step">${t("plan_step_n", { i: stepIndex + 1, total: plan.steps.length, name: t(step.nameKey) })}</span>
+      </div>
+    </div>
+    <div class="pb-right">
+      <button class="btn" id="pbExitBtn">${t("plan_exit")}</button>
+    </div>
+  `;
+
+  $("pbExitBtn").onclick = () => {
+    sfx.click();
+    closePlanBanner();
+  };
+}
+
+function closePlanBanner() {
+  activePlanState = null;
+  const banner = $("planBanner");
+  if (banner) banner.style.display = "none";
+}
+
 /* ---------- 游戏大厅渲染 ---------- */
 function passedSet(r) {
   const s = new Set();
@@ -187,7 +499,6 @@ function unlockedLvl(game, r) {
 }
 
 function renderGames() {
-  renderPlans("gamesPlansGrid");
   const grid = $("gamesGrid");
   if (!grid) return;
 
