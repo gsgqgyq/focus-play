@@ -8,7 +8,7 @@ import { sfx } from "../audio.js";
 export const gonogo = {
   id: "gonogo",
   min: 1,
-  max: 6,
+  max: 9,
   icon: "🛑",
   nameKey: "gg_t",
   descKey: "gg_d",
@@ -17,11 +17,11 @@ export const gonogo = {
 
   start(host, { level, end }) {
     const trials = 18 + level * 3;
-    // 关卡参数：反应时间窗口与急刹车信号延迟 (SSD)
-    const windowMs = Math.max(550, 1100 - (level - 1) * 90);
+    // 关卡参数：反应时间窗口与急刹车信号延迟 (SSD) (L9 极限 380ms 极窄窗口与 80ms 毫秒急刹)
+    const windowMs = Math.max(380, 1100 - (level - 1) * 80);
     const stopRate = 0.28; // 约 28% 为抑制靶标
     const hasStopSignal = level >= 3; // L3 及以上开启动态变红急刹车
-    const ssdMs = Math.max(120, 260 - (level - 3) * 40);
+    const ssdMs = Math.max(80, 260 - (level - 3) * 25);
 
     const seq = [];
     for (let i = 0; i < trials; i++) {

@@ -7,7 +7,7 @@ import { sfx } from "../audio.js";
 export const flanker = {
   id: "flanker",
   min: 1,
-  max: 6,
+  max: 9,
   icon: "🎯",
   nameKey: "flanker_t",
   descKey: "flanker_d",
@@ -16,9 +16,9 @@ export const flanker = {
 
   start(host, { level, end }) {
     const trials = 16 + level * 4;
-    // 关卡参数：反应时间窗口与干扰难度
-    const windowMs = Math.max(700, 1800 - (level - 1) * 180);
-    const incongruentRate = Math.min(0.75, 0.4 + (level - 1) * 0.07);
+    // 关卡参数：反应时间窗口与干扰难度 (L9 极限 520ms 快速窗口与 85% 强冲突)
+    const windowMs = Math.max(520, 1800 - (level - 1) * 150);
+    const incongruentRate = Math.min(0.85, 0.4 + (level - 1) * 0.055);
 
     // 预生成序列
     const seq = [];

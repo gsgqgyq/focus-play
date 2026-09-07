@@ -8,7 +8,7 @@ import { sfx } from "../audio.js";
 export const sart = {
   id: "sart",
   min: 1,
-  max: 6,
+  max: 9,
   icon: "👁️",
   nameKey: "sart_t",
   descKey: "sart_d",
@@ -17,9 +17,9 @@ export const sart = {
 
   start(host, { level, end }) {
     const trials = 24 + level * 5;
-    // 刺激呈现时间与间隔 (随着关卡递增加快)
-    const stimMs = Math.max(260, 520 - (level - 1) * 45);
-    const maskMs = Math.max(400, 800 - (level - 1) * 70);
+    // 刺激呈现时间与间隔 (随着关卡递增加快，L9 达到 160ms/300ms 快速警觉抑制)
+    const stimMs = Math.max(160, 520 - (level - 1) * 42);
+    const maskMs = Math.max(300, 800 - (level - 1) * 58);
 
     // 预先生成序列：数字 1~9，其中约 15%~18% 为数字 3 (No-Go 靶标)
     const seq = [];

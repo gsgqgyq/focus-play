@@ -21,7 +21,7 @@ const BLOCK_COORDS = [
 export const corsi = {
   id: "corsi",
   min: 1,
-  max: 6,
+  max: 9,
   icon: "🧩",
   nameKey: "corsi_t",
   descKey: "corsi_d",
@@ -29,9 +29,10 @@ export const corsi = {
   scienceKey: "sci_corsi",
 
   start(host, { level, end }) {
-    // 关卡设计：随着等级提升，序列长度增加；L4~L6 引入逆序倒背
-    const isReverse = level >= 4;
-    const baseSpan = Math.min(7, 3 + (level > 3 ? level - 3 : level - 1)); // L1:3, L2:4, L3:5, L4:4(逆), L5:5(逆), L6:6(逆)
+    // 关卡设计：随着等级提升，序列长度增加；L4~L6, L8, L9 引入逆序倒背 (L9 达 8 格逆序极限)
+    const isReverse = (level >= 4 && level <= 6) || level >= 8;
+    const spanMap = { 1: 3, 2: 4, 3: 5, 4: 4, 5: 5, 6: 6, 7: 6, 8: 7, 9: 8 };
+    const baseSpan = spanMap[level] || 4;
     const rounds = 5;
 
     host.innerHTML = `

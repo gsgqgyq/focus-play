@@ -11,13 +11,16 @@ const LEVEL_CONFIGS = [
   { minSec: 3.5, maxSec: 6.0, tolerance: 0.20 }, // L3
   { minSec: 4.0, maxSec: 7.5, tolerance: 0.18 }, // L4
   { minSec: 5.0, maxSec: 9.0, tolerance: 0.15 }, // L5
-  { minSec: 6.0, maxSec: 12.0, tolerance: 0.12 } // L6 高精度挑战
+  { minSec: 6.0, maxSec: 12.0, tolerance: 0.12 }, // L6 高精度挑战
+  { minSec: 7.0, maxSec: 14.0, tolerance: 0.10 }, // L7 极高精度挑战
+  { minSec: 8.0, maxSec: 16.0, tolerance: 0.08 }, // L8 极限生物钟盲测
+  { minSec: 10.0, maxSec: 20.0, tolerance: 0.06 } // L9 大师级内源时间心流
 ];
 
 export const time_sense = {
   id: "time_sense",
   min: 1,
-  max: 6,
+  max: 9,
   icon: "⏳",
   nameKey: "time_sense_t",
   descKey: "time_sense_d",

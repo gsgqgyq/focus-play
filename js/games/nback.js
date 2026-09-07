@@ -34,7 +34,7 @@ function buildSeq(N, trials) {
 export const nback = {
   id: "nback",
   min: 1,
-  max: 6,
+  max: 9,
   icon: "🧠",
   nameKey: "n_t",
   descKey: "n_d",
@@ -42,7 +42,10 @@ export const nback = {
   scienceKey: "sci_nback",
 
   start(host, { level, end }) {
-    const N = level;
+    const nMap = { 1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3, 9: 4 };
+    const paceMap = { 1: 3000, 2: 2600, 3: 3000, 4: 2600, 5: 2200, 6: 2600, 7: 2200, 8: 1900, 9: 2200 };
+    const N = nMap[level] || Math.min(4, Math.max(1, Math.ceil(level / 2)));
+    const windowMs = paceMap[level] || 2500;
     const trials = 16 + N * 4;
     const seq = buildSeq(N, trials);
     const dual = store.getPref("nbackCue", true); // 默认开启双通道，更具临床实证效果
@@ -205,7 +208,7 @@ export const nback = {
 
         updateHud();
         present(i + 1);
-      }, WINDOW_MS);
+      }, windowMs);
     }
 
     function handlePosPress() {

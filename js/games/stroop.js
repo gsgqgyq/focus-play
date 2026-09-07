@@ -15,7 +15,7 @@ const PALETTE = [
 export const stroop = {
   id: "stroop",
   min: 1,
-  max: 6,
+  max: 9,
   icon: "🎨",
   nameKey: "st_t",
   descKey: "st_d",
@@ -26,7 +26,8 @@ export const stroop = {
     const colorCount = Math.min(5, 3 + Math.floor((level - 1) / 2));
     const activeColors = PALETTE.slice(0, colorCount);
     const trials = 16 + level * 3;
-    const windowMs = Math.max(900, 2200 - (level - 1) * 220);
+    // L9 达到 650ms 极限语义抗干扰快速反应时窗
+    const windowMs = Math.max(650, 2200 - (level - 1) * 180);
     const hasSwitchRule = level >= 4; // L4 及以上加入随机规则切换（按字义 vs 按墨色）
 
     // 生成试次

@@ -10,13 +10,16 @@ const LEVEL_CONFIG = [
   { size: 5, max: 25, reverse: false, shuffle: false }, // L3: 5x5 (1-25)
   { size: 5, max: 25, reverse: true,  shuffle: false }, // L4: 5x5 倒序 (25-1)
   { size: 5, max: 25, reverse: false, shuffle: true  }, // L5: 5x5 动态重排 (每5个打乱一次)
-  { size: 6, max: 36, reverse: false, shuffle: false }  // L6: 6x6 (1-36)
+  { size: 6, max: 36, reverse: false, shuffle: false }, // L6: 6x6 (1-36)
+  { size: 6, max: 36, reverse: true,  shuffle: false }, // L7: 6x6 倒序 (36-1)
+  { size: 7, max: 49, reverse: false, shuffle: false }, // L8: 7x7 大视野 (1-49)
+  { size: 7, max: 49, reverse: true,  shuffle: true  }  // L9: 7x7 终极大挑战 (49-1 倒序 + 动态重排)
 ];
 
 export const schulte = {
   id: "schulte",
   min: 1,
-  max: 6,
+  max: 9,
   icon: "🔢",
   nameKey: "s_t",
   descKey: "s_d",
@@ -38,6 +41,10 @@ export const schulte = {
     // 生成乱序数组
     let numbers = [...targetSeq].sort(() => Math.random() - 0.5);
 
+    const tipMsg = (cfg.reverse && cfg.shuffle)
+      ? "⚠️ 终极大师关卡：倒序寻找（从最大点到 1）且动态重排！"
+      : (cfg.reverse ? "⚠️ 本关为倒序挑战（从最大数字点到 1）！" : (cfg.shuffle ? "⚠️ 动态扰动：每点击 5 个数字方格将重排！" : "视线尽量保持在方格中心，运用余光搜寻目标数字。"));
+
     host.innerHTML = `
       <div class="hud" style="margin-bottom:14px">
         <span>关卡 <b>L${level}</b></span>
@@ -50,7 +57,7 @@ export const schulte = {
       </div>
 
       <div class="schulte-tip">
-        ${cfg.reverse ? "⚠️ 本关为倒序挑战（从最大数字点到 1）！" : (cfg.shuffle ? "⚠️ 动态扰动：每点击 5 个数字方格将重排！" : "视线尽量保持在方格中心，运用余光搜寻目标数字。")}
+        ${tipMsg}
       </div>
     `;
 

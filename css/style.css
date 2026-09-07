@@ -1162,8 +1162,8 @@ main {
 /* ---------- 游戏 7: Schulte ---------- */
 .schulte-table {
   display: grid;
-  gap: 10px;
-  max-width: 440px;
+  gap: clamp(4px, 1.5vw, 8px);
+  max-width: 480px;
   width: 100%;
   margin: 12px auto;
 }
@@ -1175,9 +1175,10 @@ main {
   border: 1.5px solid var(--card-border);
   display: grid;
   place-items: center;
-  font-size: clamp(1.2rem, 5vw, 1.8rem);
+  font-size: clamp(0.9rem, 3.6vw, 1.5rem);
   font-weight: 800;
   transition: var(--trans);
+  padding: 0;
 }
 
 .st-cell:hover {
