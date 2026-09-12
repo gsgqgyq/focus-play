@@ -6,10 +6,20 @@ let lang = store.getPref("lang", "zh");
 const DICT = {
   zh: {
     brand: "FocusPlay 专注乐园",
+    nav_training: "专注训练",
+    nav_puzzles: "益智游戏",
+    nav_reader: "专注速读",
     nav_games: "科学训练",
     nav_timer: "专注计时",
     nav_breathe: "正念呼吸",
     nav_stats: "数据洞察",
+
+    training_lobby_t: "🎯 循证专注训练",
+    training_lobby_sub: "专为注意缺陷与执行功能设计。对抗走神、维持持续警觉并扩增工作记忆容量。",
+    puzzles_lobby_t: "🧩 休闲益智心流",
+    puzzles_lobby_sub: "自定步调、无压解压与良性多巴胺。2048 合成心流与全阶梯纯净数独。",
+    reader_title: "📖 专注速读器 · Focus Reader",
+    reader_sub: "消除眼动跳跃与默读拖累，让长文以 400+ 字/分 流入大脑，专治阅读拖延与启动瘫痪。",
 
     // 首页
     hero_title: "重塑多巴胺回路 · 把专注练成习惯",
@@ -176,6 +186,18 @@ const DICT = {
     how_stroop: "屏幕中央会出现带有颜色的文字。请<b>完全忽略文字写的是什么</b>，迅速点击文字所用的【实际颜色】！注意高难度关卡可能有临时规则反转。",
     sci_stroop: "训练前额叶对自动化言语阅读的抑制机制与认知灵活性。",
 
+    // 2048
+    g2048_t: "2048 数字合并心流",
+    g2048_d: "滑动合并相同数字，在无压微步合成中激发温和多巴胺，沉浸式消磨碎片时间。",
+    how_g2048: "使用键盘方向键（↑ ↓ ← → 或 W A S D）或在屏幕上滑动。每次移动所有方块向同方向滑动，相同数字相撞时会合并相加（2+2=4... 1024+1024=2048）！",
+    sci_g2048: "温和即时正反馈与局部空间推演，在自定节奏下避免认知焦虑，进入良性多巴胺心流。",
+
+    // 数独
+    sudoku_t: "数独全阶梯",
+    sudoku_d: "从 4x4 四宫格极简入门到 9x9 经典大盘，纯逻辑排除，高亮同数辅助，享受解谜沉浸感。",
+    how_sudoku: "在空格中填入数字，保证每一行、每一列及每一个粗线宫内数字不重复！点击格子后使用下方数字键盘或电脑数字键填数，支持点击【草稿模式】记下候选数。",
+    sci_sudoku: "前额叶工作记忆多点追踪与演绎排除法，强化规则维持与深度专注力。",
+
     // 专注计时
     timer_title: "Time Timer 视觉专注",
     timer_sub: "摆脱冰冷数字的时间抽象焦虑，用看得见的流逝圆盘，从 5 分钟微步开始轻松进入心流。",
@@ -266,10 +288,20 @@ const DICT = {
 
   en: {
     brand: "FocusPlay",
+    nav_training: "Training",
+    nav_puzzles: "Puzzles",
+    nav_reader: "Speed Reader",
     nav_games: "Training",
     nav_timer: "Focus",
     nav_breathe: "Breathe",
     nav_stats: "Insights",
+
+    training_lobby_t: "🎯 Evidence-Based Training",
+    training_lobby_sub: "Designed for sustained attention & executive function. Combat mind-wandering and expand working memory.",
+    puzzles_lobby_t: "🧩 Flow & Brain Puzzles",
+    puzzles_lobby_sub: "Self-paced, low-pressure dopamine flow. Smooth 2048 merges and multi-tier Sudoku deduction.",
+    reader_title: "📖 Focus Speed Reader (RSVP)",
+    reader_sub: "Eliminate eye fatigue and subvocalization. Stream articles at 400+ WPM directly into your visual cortex.",
 
     hero_title: "Rewire Dopamine · Build Focus as a Muscle",
     hero_sub: "Backed by cognitive neuroscience & ADHD clinical evidence. 5-minute micro-habits to strengthen executive function and master time.",
@@ -426,6 +458,18 @@ const DICT = {
     st_d: "Name the font color while suppressing the printed word meaning. Train cognitive flexibility.",
     how_stroop: "Ignore the semantic text and click the actual <b>ink color</b> of the word!",
     sci_stroop: "Suppresses automated verbal reading reflexes.",
+
+    // 2048
+    g2048_t: "2048 Number Merge Flow",
+    g2048_d: "Slide and merge numbers in a low-pressure, intrinsically rewarding dopamine flow.",
+    how_g2048: "Use Arrow keys (↑ ↓ ← → / WASD) or swipe on mobile. Tiles slide as far as they can go; matching tiles merge into one (2+2=4 ... 1024+1024=2048)!",
+    sci_g2048: "Micro-reward loops and spatial planning that stimulate prefrontal dopamine without temporal stress.",
+
+    // Sudoku
+    sudoku_t: "Sudoku Logic Tiers",
+    sudoku_d: "From 4x4 mini-grids to 9x9 classic puzzles. Pure deductive reasoning with highlighting and pencil notes.",
+    how_sudoku: "Fill numbers so that every row, column, and block contains unique digits. Click a cell and use the keypad or number keys. Toggle Pencil Mode for candidate notes.",
+    sci_sudoku: "Working memory multi-item maintenance and rule-based constraint satisfaction.",
 
     timer_title: "Time Timer Visual Focus",
     timer_sub: "Eliminate time blindness with an intuitive visual disk. Start with 5-minute micro-sprints.",

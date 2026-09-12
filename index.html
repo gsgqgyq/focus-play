@@ -7,7 +7,7 @@
   <meta name="description" content="基于认知心理学与神经科学实证的 ADHD 专注力训练乐园，包含抗干扰、工作记忆、持续警觉与时间感知校准。">
   <title>专注乐园 · FocusPlay</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
-  <link rel="stylesheet" href="css/style.css?v=18">
+  <link rel="stylesheet" href="css/style.css?v=19">
 </head>
 <body>
 
@@ -18,7 +18,9 @@
     <span class="brand-name">FocusPlay</span>
   </button>
   <nav id="mainnav" class="mainnav">
-    <button class="nav-btn" data-nav="games" data-i18n="nav_games">科学训练</button>
+    <button class="nav-btn" data-nav="training" data-i18n="nav_training">专注训练</button>
+    <button class="nav-btn" data-nav="puzzles" data-i18n="nav_puzzles">益智游戏</button>
+    <button class="nav-btn" data-nav="reader" data-i18n="nav_reader">专注速读</button>
     <button class="nav-btn" data-nav="timer" data-i18n="nav_timer">专注计时</button>
     <button class="nav-btn" data-nav="breathe" data-i18n="nav_breathe">正念呼吸</button>
     <button class="nav-btn" data-nav="stats" data-i18n="nav_stats">数据洞察</button>
@@ -64,19 +66,31 @@
     <div class="sync-card" id="syncCard"></div>
   </section>
 
-  <!-- 游戏大厅 (GAMES LIST) -->
-  <section id="view-games" class="view">
+  <!-- 专注训练 (TRAINING) -->
+  <section id="view-training" class="view">
     <header class="view-head">
-      <h1 data-i18n="card_games_t">循证认知训练</h1>
-      <p data-i18n="games_lobby_sub">8 款经神经心理学临床实证小游戏，针对性强化特定前额叶回路。</p>
+      <h1 data-i18n="training_lobby_t">🎯 循证专注训练</h1>
+      <p data-i18n="training_lobby_sub">专为注意缺陷与执行功能设计。对抗走神、维持持续警觉并扩增工作记忆容量。</p>
     </header>
-    <div class="card-grid" id="gamesGrid"></div>
+    <div class="card-grid" id="trainingGrid"></div>
   </section>
+
+  <!-- 益智游戏 (PUZZLES) -->
+  <section id="view-puzzles" class="view">
+    <header class="view-head">
+      <h1 data-i18n="puzzles_lobby_t">🧩 休闲益智心流</h1>
+      <p data-i18n="puzzles_lobby_sub">自定步调、无压解压与良性多巴胺。2048 合成心流与全阶梯纯净数独。</p>
+    </header>
+    <div class="card-grid" id="puzzlesGrid"></div>
+  </section>
+
+  <!-- 专注速读 (READER) -->
+  <section id="view-reader" class="view"></section>
 
   <!-- 游戏运行界面 (GAME PLAY) -->
   <section id="view-play" class="view">
     <div class="play-head">
-      <button class="icon-btn" data-nav="games" title="返回大厅">←</button>
+      <button class="icon-btn" id="playBackBtn" title="返回">←</button>
       <h1 id="playTitle">训练准备</h1>
       <span class="lvl-badge" id="playLevelBadge">Level 1</span>
       <span class="play-best-hud" id="playBestBadge" style="display:none" title="该项目历史最高记录">
@@ -205,6 +219,6 @@
 
 <!-- 部署同源同步配置与主程序入口 -->
 <script>window.FOCUSPLAY_CONFIG = { syncUrl: "/api/sync" };</script>
-<script type="module" src="js/app.js?v=18"></script>
+<script type="module" src="js/app.js?v=19"></script>
 </body>
 </html>

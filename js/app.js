@@ -5,30 +5,39 @@ import { sfx } from "./audio.js";
 import { voice } from "./voice.js";
 import { ambientPlayer } from "./ambient.js";
 
-// 8 款循证训练矩阵
+// 循证专注训练矩阵（针对 ADHD-I 持续注意与工作记忆）
 import { flanker } from "./games/flanker.js";
 import { sart } from "./games/sart.js";
 import { corsi } from "./games/corsi.js";
 import { time_sense } from "./games/time_sense.js";
 import { nback } from "./games/nback.js";
 import { gonogo } from "./games/gonogo.js";
-import { schulte } from "./games/schulte.js";
 import { stroop } from "./games/stroop.js";
+
+// 休闲益智矩阵（无压自定步调心流与良性多巴胺）
+import { g2048 } from "./games/g2048.js";
+import { sudoku } from "./games/sudoku.js";
+import { schulte } from "./games/schulte.js";
 
 import { initTimer } from "./modules/timer.js";
 import { initBreathe } from "./modules/breathe.js";
+import { initReader } from "./modules/reader.js";
 
-const GAMES = [flanker, sart, corsi, time_sense, nback, gonogo, schulte, stroop];
+export const TRAINING_GAMES = [nback, sart, flanker, corsi, time_sense, gonogo, stroop];
+export const PUZZLE_GAMES = [g2048, sudoku, schulte];
+export const GAMES = [...TRAINING_GAMES, ...PUZZLE_GAMES];
 
 const DOMAIN_BADGES = {
-  flanker: "🎯 选择性抗干扰",
+  nback: "🧠 工作记忆刷新",
   sart: "👁️ 持续警觉维持",
+  flanker: "🎯 选择性抗干扰",
   corsi: "🧩 视空间工作记忆",
   time_sense: "⏳ 时间盲校准",
-  nback: "🧠 工作记忆刷新",
   gonogo: "🛑 冲动急刹车",
-  schulte: "🔢 视野广度搜索",
-  stroop: "🎨 认知冲突灵活性"
+  stroop: "🎨 认知冲突灵活性",
+  g2048: "🔢 数字滑动心流",
+  sudoku: "🧩 逻辑演绎排除",
+  schulte: "👀 视野广度寻宝"
 };
 
 const $ = id => document.getElementById(id);
@@ -56,6 +65,9 @@ export function abortCurrentGame() {
 
 /* ---------- 视图切换路由 ---------- */
 export function navigateTo(view) {
+  // 兼容旧代码调用 games
+  if (view === "games") view = "training";
+
   // 切离训练游戏时立即中止后台计时、刺激刷新与按键监听，防止后台偷跑
   if (view !== "play") {
     abortCurrentGame();
@@ -70,7 +82,8 @@ export function navigateTo(view) {
   });
 
   if (view === "home") renderHome();
-  if (view === "games") renderGames();
+  if (view === "training") renderTraining();
+  if (view === "puzzles") renderPuzzles();
   if (view === "stats") renderStats();
   if (view === "play") paintLevelStrip();
 
@@ -617,11 +630,10 @@ function unlockedLvl(game, r) {
   return Math.min(game.max, Math.max(1, m + 1));
 }
 
-function renderGames() {
-  const grid = $("gamesGrid");
+function renderGameList(grid, list) {
   if (!grid) return;
 
-  grid.innerHTML = GAMES.map(g => {
+  grid.innerHTML = list.map(g => {
     const r = store.records[g.id];
     const uni = unlockedLvl(g, r);
     const done = uni > g.max - 1 && passedSet(r).has(g.max);
@@ -663,6 +675,26 @@ function renderGames() {
       const g = GAMES.find(x => x.id === card.dataset.game);
       if (g) openPlay(g, unlockedLvl(g, store.records[g.id]));
     });
+  });
+}
+
+function renderTraining() {
+  renderGameList($("trainingGrid"), TRAINING_GAMES);
+}
+
+function renderPuzzles() {
+  renderGameList($("puzzlesGrid"), PUZZLE_GAMES);
+}
+
+const playBackBtn = $("playBackBtn");
+if (playBackBtn) {
+  playBackBtn.addEventListener("click", () => {
+    sfx.click();
+    if (currentGame && PUZZLE_GAMES.some(p => p.id === currentGame.id)) {
+      navigateTo("puzzles");
+    } else {
+      navigateTo("training");
+    }
   });
 }
 
@@ -1066,13 +1098,18 @@ $("voiceBtn").addEventListener("click", () => {
 /* ---------- 初始化 ---------- */
 document.addEventListener("keydown", e => {
   if (e.code === "Escape" && currentGame && currentView === "play") {
-    navigateTo("games");
+    if (PUZZLE_GAMES.some(p => p.id === currentGame.id)) {
+      navigateTo("puzzles");
+    } else {
+      navigateTo("training");
+    }
   }
 });
 
 window.addEventListener("ff:lang", () => {
   if (currentView === "home") renderHome();
-  if (currentView === "games") renderGames();
+  if (currentView === "training") renderTraining();
+  if (currentView === "puzzles") renderPuzzles();
   if (currentView === "play" && currentGame) {
     $("playTitle").textContent = t(currentGame.nameKey);
     paintLevelStrip();
@@ -1088,6 +1125,7 @@ window.addEventListener("beforeunload", () => {
 // 模块初始化
 initTimer();
 initBreathe();
+initReader();
 ambientPlayer.init();
 applyI18n();
 applyTheme();
