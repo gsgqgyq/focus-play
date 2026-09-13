@@ -21,7 +21,6 @@ import { schulte } from "./games/schulte.js";
 
 import { initTimer } from "./modules/timer.js";
 import { initBreathe } from "./modules/breathe.js";
-import { initReader } from "./modules/reader.js";
 
 export const TRAINING_GAMES = [nback, sart, flanker, corsi, time_sense, gonogo, stroop];
 export const PUZZLE_GAMES = [g2048, sudoku, schulte];
@@ -1126,11 +1125,6 @@ window.addEventListener("beforeunload", () => {
 initTimer();
 initBreathe();
 ambientPlayer.init();
-try {
-  initReader();
-} catch (e) {
-  console.warn("initReader error:", e);
-}
 applyI18n();
 applyTheme();
 navigateTo("home");

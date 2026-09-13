@@ -163,6 +163,8 @@ export const sudoku = {
       return count;
     }
 
+    let lastActionCell = null;
+
     function renderBoard() {
       boardEl.innerHTML = "";
       boardEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
@@ -183,6 +185,10 @@ export const sudoku = {
           if (isSelected) cell.classList.add("selected");
           else if (isSameVal) cell.classList.add("same-val");
           else if (isRelated) cell.classList.add("related");
+
+          if (lastActionCell && lastActionCell.r === r && lastActionCell.c === c) {
+            cell.classList.add(lastActionCell.type);
+          }
 
           // 格子边界划分（宫格加粗边界）
           if ((r + 1) % cfg.blockR === 0 && r < size - 1) cell.classList.add("border-b");
@@ -248,11 +254,13 @@ export const sudoku = {
       if (userGrid[r][c] === num) {
         // 再次点击相同数字则清空
         userGrid[r][c] = 0;
+        lastActionCell = null;
         sfx.tap();
       } else {
         if (num === solution[r][c]) {
           // 正确填入
           userGrid[r][c] = num;
+          lastActionCell = { r, c, type: "pop" };
           sfx.tap();
           // 清除同行同列同宫中的对应草稿
           cleanNotes(r, c, num);
@@ -260,12 +268,14 @@ export const sudoku = {
           // 填错
           errors++;
           errEl.textContent = errors;
+          lastActionCell = { r, c, type: "shake" };
           sfx.wrong();
           userGrid[r][c] = num; // 允许填入但有提示
         }
       }
 
       renderBoard();
+      setTimeout(() => { lastActionCell = null; }, 320);
       checkCompletion();
     }
 

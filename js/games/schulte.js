@@ -93,7 +93,7 @@ export const schulte = {
       if (val === expected) {
         // 点击正确
         sfx.tap();
-        btn.classList.add("done");
+        btn.classList.add("done", "hit-pop");
         curTargetIdx++;
 
         if (cfg.shuffle && curTargetIdx % 5 === 0 && curTargetIdx < total) {
