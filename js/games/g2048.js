@@ -158,8 +158,9 @@ export const g2048 = {
 
       tileContainer.appendChild(el);
 
-      // 如果有位移，在下一帧触发 CSS transform 过渡
+      // 如果有位移，强制同步旧位置后在下一帧触发 CSS transform 过渡
       if (tile.previousPosition) {
+        void el.offsetWidth;
         window.requestAnimationFrame(() => {
           el.classList.remove(posClass);
           el.classList.add(`pos-${tile.x}-${tile.y}`);
@@ -178,8 +179,11 @@ export const g2048 = {
             const tile = grid[x][y];
             if (tile) {
               if (tile.mergedFrom) {
-                // 先渲染合并前的两块滑入目标
-                tile.mergedFrom.forEach(m => renderTile(m));
+                // 先渲染合并前的两块滑入目标，动画结束后清理
+                tile.mergedFrom.forEach(m => {
+                  const mEl = renderTile(m);
+                  mEl.classList.add("tile-disposed");
+                });
                 // 再渲染合成后的新块
                 renderTile(tile, true);
               } else {
@@ -188,6 +192,12 @@ export const g2048 = {
             }
           }
         }
+
+        // 110ms 后清理已合并并入目标单元格的旧组件，杜绝重叠重影
+        setTimeout(() => {
+          const oldDisposed = tileContainer.querySelectorAll(".tile-disposed");
+          oldDisposed.forEach(d => d.remove());
+        }, 110);
 
         // 得分与最高数字更新
         scoreEl.textContent = score;
