@@ -1125,8 +1125,12 @@ window.addEventListener("beforeunload", () => {
 // 模块初始化
 initTimer();
 initBreathe();
-initReader();
 ambientPlayer.init();
+try {
+  initReader();
+} catch (e) {
+  console.warn("initReader error:", e);
+}
 applyI18n();
 applyTheme();
 navigateTo("home");

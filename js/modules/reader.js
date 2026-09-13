@@ -6,7 +6,20 @@
    4. RSVP 极速视认流：ORP 最佳视认中心对齐、速度调节 (200-1200 WPM)、标点智能微停顿与全键盘快捷键。 */
 import { t } from "../i18n.js";
 import { sfx } from "../audio.js";
-import { toast } from "../app.js";
+
+function toast(msg) {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    el.className = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove("show"), 2600);
+}
 
 // 精选预置文章库
 const PRESET_ARTICLES = [
@@ -284,91 +297,96 @@ export function initReader() {
   });
 
   // 3. Tab 1: 网页 URL 智能正文提取 (Jina Reader 引擎)
-  extractBtn.addEventListener("click", async () => {
-    let url = (urlInput.value || "").trim();
-    if (!url) {
-      toast("请先输入网页链接");
-      return;
-    }
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      url = "https://" + url;
-    }
-
-    sfx.click();
-    extractBtn.disabled = true;
-    extractStatus.innerHTML = `<span class="extract-loading">🔄 正在智能提取正文并剥离广告杂质，请稍候...</span>`;
-
-    try {
-      // 采用 r.jina.ai 免跨域纯净正文提取服务
-      const jinaUrl = `https://r.jina.ai/${url}`;
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 12000);
-
-      const resp = await fetch(jinaUrl, {
-        signal: controller.signal,
-        headers: { "X-No-Cache": "true" }
-      });
-      clearTimeout(timer);
-
-      if (!resp.ok) {
-        throw new Error(`HTTP ${resp.status}`);
+  if (extractBtn) {
+    extractBtn.addEventListener("click", async () => {
+      let url = (urlInput.value || "").trim();
+      if (!url) {
+        toast("请先输入网页链接");
+        return;
+      }
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
       }
 
-      const text = await resp.text();
-      extractBtn.disabled = false;
+      sfx.click();
+      extractBtn.disabled = true;
+      extractStatus.innerHTML = `<span class="extract-loading">🔄 正在智能提取正文并剥离广告杂质，请稍候...</span>`;
 
-      // 提取标题与正文
-      let articleTitle = "提取文章";
-      const titleMatch = text.match(/Title:\s*(.+)/i) || text.match(/^#\s+(.+)/m);
-      if (titleMatch && titleMatch[1]) {
-        articleTitle = titleMatch[1].trim();
+      try {
+        // 采用 r.jina.ai 免跨域纯净正文提取服务
+        const jinaUrl = `https://r.jina.ai/${url}`;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 12000);
+
+        const resp = await fetch(jinaUrl, {
+          signal: controller.signal,
+          headers: { "X-No-Cache": "true" }
+        });
+        clearTimeout(timer);
+
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}`);
+        }
+
+        const text = await resp.text();
+        extractBtn.disabled = false;
+
+        // 提取标题与正文
+        let articleTitle = "提取文章";
+        const titleMatch = text.match(/Title:\s*(.+)/i) || text.match(/^#\s+(.+)/m);
+        if (titleMatch && titleMatch[1]) {
+          articleTitle = titleMatch[1].trim();
+        }
+
+        // 清除 Jina 附带的 URL/Markdown 头部
+        const bodyClean = text
+          .replace(/^Title:.*$/im, "")
+          .replace(/^URL Source:.*$/im, "")
+          .replace(/^Markdown Content:.*$/im, "")
+          .trim();
+
+        if (bodyClean.length < 50) {
+          throw new Error("正文内容过短，可能被网页反爬拦截");
+        }
+
+        extractStatus.innerHTML = `<span class="extract-success">✅ 正文提取成功！已过滤广告与页眉页脚。</span>`;
+        updateTokens(articleTitle, bodyClean);
+        sfx.levelup();
+        toast("正文提取成功！已就绪");
+      } catch (err) {
+        console.warn("Extract error:", err);
+        extractBtn.disabled = false;
+        extractStatus.innerHTML = `
+          <span class="extract-error">
+            ⚠️ 自动提取受限（原因：${err.message || '网络超时'}）。建议直接复制网页文本，切换到【📝 自由粘贴长文】粘贴使用！
+          </span>
+        `;
+        toast("网页提取超时或受限，可复制文本直接粘贴");
       }
-
-      // 清除 Jina 附带的 URL/Markdown 头部
-      const bodyClean = text
-        .replace(/^Title:.*$/im, "")
-        .replace(/^URL Source:.*$/im, "")
-        .replace(/^Markdown Content:.*$/im, "")
-        .trim();
-
-      if (bodyClean.length < 50) {
-        throw new Error("正文内容过短，可能被网页反爬拦截");
-      }
-
-      extractStatus.innerHTML = `<span class="extract-success">✅ 正文提取成功！已过滤广告与页眉页脚。</span>`;
-      updateTokens(articleTitle, bodyClean);
-      sfx.levelup();
-      toast("正文提取成功！已就绪");
-    } catch (err) {
-      console.warn("Extract error:", err);
-      extractBtn.disabled = false;
-      extractStatus.innerHTML = `
-        <span class="extract-error">
-          ⚠️ 自动提取受限（原因：${err.message || '网络超时'}）。建议直接复制网页文本，切换到【📝 自由粘贴长文】粘贴使用！
-        </span>
-      `;
-      toast("网页提取超时或受限，可复制文本直接粘贴");
-    }
-  });
+    });
+  }
 
   // 4. Tab 2: 自由粘贴监听
-  pasteTextarea.addEventListener("input", () => {
-    const val = pasteTextarea.value.trim();
-    if (val.length > 0) {
-      const firstLine = val.split("\n")[0].slice(0, 30);
-      updateTokens(firstLine || "粘贴长文", val);
-    }
-  });
+  if (pasteTextarea) {
+    pasteTextarea.addEventListener("input", () => {
+      const val = pasteTextarea.value.trim();
+      if (val.length > 0) {
+        const firstLine = val.split("\n")[0].slice(0, 30);
+        updateTokens(firstLine || "粘贴长文", val);
+      }
+    });
+  }
 
   // 5. Tab 3: 精选微文选择
-  presetsList.querySelectorAll(".preset-article-card").forEach(card => {
+  const presetCards = container.querySelectorAll(".preset-article-card");
+  presetCards.forEach(card => {
     card.addEventListener("click", () => {
       sfx.click();
-      presetsList.querySelectorAll(".preset-article-card").forEach(c => c.classList.remove("selected"));
+      presetCards.forEach(c => c.classList.remove("selected"));
       card.classList.add("selected");
       const idx = parseInt(card.dataset.idx, 10);
       const article = PRESET_ARTICLES[idx];
-      updateTokens(article.title, article.content);
+      if (article) updateTokens(article.title, article.content);
     });
   });
 
@@ -394,25 +412,29 @@ export function initReader() {
   }
 
   // 7. 进入 RSVP 极速视认播放器
-  startFlowBtn.addEventListener("click", () => {
-    if (tokens.length === 0) {
-      tokens = tokenize(rawText);
-    }
-    sfx.click();
-    setupWrap.style.display = "none";
-    stageWrap.style.display = "flex";
-    stageTitle.textContent = currentTitle;
-    currentTokenIdx = 0;
-    renderCurrentWord();
-    play();
-  });
+  if (startFlowBtn) {
+    startFlowBtn.addEventListener("click", () => {
+      if (tokens.length === 0) {
+        tokens = tokenize(rawText);
+      }
+      sfx.click();
+      if (setupWrap) setupWrap.style.display = "none";
+      if (stageWrap) stageWrap.style.display = "flex";
+      if (stageTitle) stageTitle.textContent = currentTitle;
+      currentTokenIdx = 0;
+      renderCurrentWord();
+      play();
+    });
+  }
 
-  exitStageBtn.addEventListener("click", () => {
-    sfx.click();
-    pause();
-    stageWrap.style.display = "none";
-    setupWrap.style.display = "block";
-  });
+  if (exitStageBtn) {
+    exitStageBtn.addEventListener("click", () => {
+      sfx.click();
+      pause();
+      if (stageWrap) stageWrap.style.display = "none";
+      if (setupWrap) setupWrap.style.display = "block";
+    });
+  }
 
   // 8. ORP 核心渲染与对齐
   function renderCurrentWord() {
@@ -517,48 +539,33 @@ export function initReader() {
   }
 
   // 10. 控制按钮事件
-  playPauseBtn.addEventListener("click", () => {
-    sfx.click();
-    togglePlay();
-  });
+  if (playPauseBtn) playPauseBtn.addEventListener("click", () => { sfx.click(); togglePlay(); });
+  if (stepBackBtn) stepBackBtn.addEventListener("click", () => { sfx.click(); jumpWords(-10); });
+  if (stepForwardBtn) stepForwardBtn.addEventListener("click", () => { sfx.click(); jumpWords(10); });
+  if (decWpmBtn) decWpmBtn.addEventListener("click", () => { sfx.click(); setWpm(wpm - 50); });
+  if (incWpmBtn) incWpmBtn.addEventListener("click", () => { sfx.click(); setWpm(wpm + 50); });
 
-  stepBackBtn.addEventListener("click", () => {
-    sfx.click();
-    jumpWords(-10);
-  });
-
-  stepForwardBtn.addEventListener("click", () => {
-    sfx.click();
-    jumpWords(10);
-  });
-
-  decWpmBtn.addEventListener("click", () => {
-    sfx.click();
-    setWpm(wpm - 50);
-  });
-
-  incWpmBtn.addEventListener("click", () => {
-    sfx.click();
-    setWpm(wpm + 50);
-  });
-
-  audioToggle.addEventListener("click", () => {
-    audioTick = !audioTick;
-    audioToggle.textContent = audioTick ? "🔔" : "🔕";
-    audioToggle.style.opacity = audioTick ? "1" : "0.5";
-    sfx.click();
-    toast(audioTick ? "已开启打拍提示音" : "已静音");
-  });
+  if (audioToggle) {
+    audioToggle.addEventListener("click", () => {
+      audioTick = !audioTick;
+      audioToggle.textContent = audioTick ? "🔔" : "🔕";
+      audioToggle.style.opacity = audioTick ? "1" : "0.5";
+      sfx.click();
+      toast(audioTick ? "已开启打拍提示音" : "已静音");
+    });
+  }
 
   // 点击进度条快速跳转
-  progressTrack.addEventListener("click", (e) => {
-    const rect = progressTrack.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const pct = Math.max(0, Math.min(1, clickX / rect.width));
-    currentTokenIdx = Math.floor(pct * tokens.length);
-    renderCurrentWord();
-    if (isPlaying) restartWordLoop();
-  });
+  if (progressTrack) {
+    progressTrack.addEventListener("click", (e) => {
+      const rect = progressTrack.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, clickX / rect.width));
+      currentTokenIdx = Math.floor(pct * tokens.length);
+      renderCurrentWord();
+      if (isPlaying) restartWordLoop();
+    });
+  }
 
   // 全局键盘监听
   window.addEventListener("keydown", (e) => {
